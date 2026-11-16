@@ -33,6 +33,7 @@ pub struct DisplayApp {
     storage_blocked: bool,
     source: String,
     receiver: Option<Receiver>,
+    ac_receiver: Option<crate::ac::AcReceiver>,
     connection_error: String,
     start: Instant,
     search: String,
@@ -99,6 +100,7 @@ impl DisplayApp {
             storage_blocked: error.is_some(),
             source: "demo".into(),
             receiver: None,
+            ac_receiver: None,
             connection_error: String::new(),
             start: Instant::now(),
             search: String::new(),
@@ -126,6 +128,7 @@ impl DisplayApp {
     }
     fn set_source(&mut self, source: String) {
         self.receiver = None;
+        self.ac_receiver = None;
         self.connection_error.clear();
         self.source = source;
         if self.source == "f1" {
@@ -133,11 +136,31 @@ impl DisplayApp {
                 Ok(r) => self.receiver = Some(r),
                 Err(e) => self.connection_error = e,
             }
+        } else if self.source == "ac" {
+            match crate::ac::AcReceiver::new() {
+                Ok(receiver) => self.ac_receiver = Some(receiver),
+                Err(error) => self.connection_error = error,
+            }
         }
     }
     fn telemetry(&mut self) -> (Data, &'static str) {
         if self.source == "demo" {
             return (telemetry::demo(self.start.elapsed().as_secs_f64()), "DEMO");
+        }
+        if self.source == "ac" {
+            if let Some(receiver) = &mut self.ac_receiver {
+                let snapshot = receiver.snapshot();
+                self.connection_error = snapshot.error.unwrap_or_default();
+                return (snapshot.data, snapshot.status);
+            }
+            return (
+                Data::new(),
+                if self.connection_error.is_empty() {
+                    "WAITING"
+                } else {
+                    "ERROR"
+                },
+            );
         }
         if self.source != "f1" {
             return (Data::new(), "NOT READY");
@@ -408,7 +431,7 @@ impl DisplayApp {
                         for (id, label) in [
                             ("demo", "Demo / ข้อมูลจำลอง"),
                             ("f1", "F1 25 / 2026 · UDP"),
-                            ("ac", "Assetto Corsa · NOT READY"),
+                            ("ac", "Assetto Corsa · Shared Memory"),
                             ("acc", "ACC · NOT READY"),
                             ("lmu", "Le Mans Ultimate · NOT READY"),
                             ("iracing", "iRacing · NOT READY"),
@@ -423,6 +446,12 @@ impl DisplayApp {
                     ui.small("127.0.0.1:20777 · format 2025 / 2026");
                     if ui.button("เชื่อมต่อใหม่").clicked() {
                         self.set_source("f1".into());
+                    }
+                }
+                if self.source == "ac" {
+                    ui.small("Shared Memory · เข้าไปขับในสนามเพื่อรับข้อมูล");
+                    if ui.button("เชื่อมต่อใหม่").clicked() {
+                        self.set_source("ac".into());
                     }
                 }
                 egui::ComboBox::from_id_salt("monitor")
@@ -516,7 +545,7 @@ impl DisplayApp {
             egui::ComboBox::from_id_salt("widget-group").selected_text(&self.widget_group).show_ui(ui, |ui| {
                 ui.selectable_value(&mut self.widget_group, "Common".into(), "Common");
                 ui.selectable_value(&mut self.widget_group, "All".into(), "All outputs");
-                for packet in crate::f1_output::packets() {
+                for packet in crate::f1_output::packets().iter().chain(crate::ac::packets()) {
                     ui.selectable_value(&mut self.widget_group, packet.group.clone(), &packet.group);
                 }
             });

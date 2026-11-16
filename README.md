@@ -73,7 +73,7 @@ F1 25: เปิด UDP Telemetry ที่ `127.0.0.1:20777`, format **2025**, 
 
 ข้อมูลแต่ละค่าหมดอายุใน 2.5 วินาที ไม่มีข้อมูลจะแสดง WAITING; พอร์ตถูกใช้งานแสดง ERROR และกดเชื่อมต่อใหม่ได้ F1 fuel ใช้ kg, Demo ใช้ L; best lap ต้องเป็นรอบ valid
 
-AC, ACC, LMU และ iRacing ยังไม่มี receiver และแสดง NOT READY ตามขอบเขตแอปเดิม
+ACC, LMU และ iRacing ยังไม่มี receiver และแสดง NOT READY ตามขอบเขตแอปเดิม
 
 ## ข้อมูลและการกู้คืน
 
@@ -146,3 +146,17 @@ cargo build --release --locked
 **ตัวเลือกใหม่ 402 รายการใช้ UDP format 2025 ตามเอกสารที่แนบ** การรองรับ 2026 ก่อนหน้านี้ยังใช้กับวิดเจ็ต Common ที่เกี่ยวข้อง ไม่ควรนำ offsets ของปี 2025 ไปอ่านแพ็กเก็ตปี 2026 โดยตรง หน่วยตัวเลือกใหม่ตรงกับ output เช่น J และ W; Common มีตัวเลือกแปลงเป็น MJ และ kW ให้แล้ว บางรหัสที่สเปกอ้างถึง Appendix จะแสดงเป็นตัวเลขรหัส
 
 ตัวถอดข้อมูลใช้ metadata ที่สร้างจากโครงสร้าง packed little-endian ไม่เรียกใช้โค้ดหรือคำสั่งจากเอกสาร สร้าง metadata ซ้ำได้ด้วย `python scripts/generate-f1-fields.py structures.txt assets/f1-2025-fields.json` (Python ใช้เฉพาะการสร้างไฟล์นี้ แอปจริงยังเป็น Rust)
+### Assetto Corsa (เกมต้นฉบับบน Windows)
+
+เลือก **Assetto Corsa · Shared Memory** จากเมนูแหล่งข้อมูล แล้วเข้าไปขับในสนาม แอปเชื่อมต่อและลองใหม่อัตโนมัติ ไม่ต้องตั้งพอร์ต UDP หรือติดตั้งแอป Python ลงในเกม
+
+- อ่าน `Local\acpmf_physics`, `Local\acpmf_graphics`, `Local\acpmf_static` แบบ read-only โดยใช้ OpenFileMappingW แอปไม่สร้าง shared memory จำลองขึ้นเองขณะรอเกม
+- ตรวจว่า `acs.exe` หรือ `acs_x86.exe` กำลังทำงาน เพื่อแยกจากเกมอื่นที่ใช้ชื่อ shared memory เดียวกัน เมื่อไม่พบเกมจะแสดง WAITING
+- Common รองรับ Speed, Gear, RPM / max RPM, Fuel (L), Throttle, Brake, Current/Last/Best lap, Position, Lap, Session remaining, อุณหภูมิแกนยาง, แรงดันยาง, อุณหภูมิเบรก, ชนิดยาง และ DRS สำหรับรถที่รองรับ เกียร์ AC 0/1/2 ถูกแปลงเป็น R/N/1 และเวลาเป็นมิลลิวินาทีหรือวินาทีตามชนิดวิดเจ็ต
+- เพิ่ม **130 ตัวเลือก** ในหมวด **AC Physics**, **AC Graphics**, **AC Static** เช่น G force, Wheel load/slip, Camber, Suspension travel, Turbo, Brake bias, KERS/ERS charge, ERS power/recovery level, ชื่อรถ สนาม ผู้เล่น ธง และสภาพสนาม เลือกล้อ FL/FR/RL/RR หรือแกน XYZ ได้ใน Inspector
+- สถานะรองรับ LIVE, PAUSED, REPLAY, WAITING และ ERROR; แพ็กเก็ตที่ไม่เปลี่ยนเป็นเวลา 2.5 วินาทีจะไม่ถูกนับเป็น LIVE มีปุ่มเชื่อมต่อใหม่
+- ค่า TC, ABS และ Tyre wear ของ AC แสดงผ่านตัวเลือก AC เป็นค่า raw ไม่แปลงเป็นระดับระบบช่วยขับหรือเปอร์เซ็นต์สึกแบบ F1 ส่วน Common ที่ไม่มีข้อมูลเทียบกันโดยตรงจะแสดง `—` ค่า KERS charge แปลงจาก 0–1 เป็นเปอร์เซ็นต์ แต่ไม่ใช้พลังงานที่จ่ายต่อรอบมาอ้างว่าเป็นพลังงานแบตเตอรี่คงเหลือ
+
+ตัวเลือกทั้งหมดตอนนี้: Common 22 + F1 25 output 402 + Assetto Corsa 130 = **554 รายการ** การรองรับนี้เป็นเกม Assetto Corsa ต้นฉบับ; ACC / EVO / Rally ยังไม่มี receiver ของตัวเอง
+
+อ้างอิงรูปแบบ pack(4), UTF-16 และโครงสร้าง AC จาก [Shared Memory Reference](https://www.assettocorsamods.net/threads/doc-shared-memory-reference.58/) และ [Rombik's sim_info.py ในแอปของ Custom Shaders Patch](https://github.com/ac-custom-shaders-patch/acc-extension-apps/blob/master/apps/python/AccExtHelper/sim_info.py) สร้าง metadata ซ้ำได้ด้วย `python scripts/generate-ac-fields.py sim_info.py assets/ac-fields.json` ตัวสร้างอ่าน AST เท่านั้น ไม่ import หรือรันไฟล์ต้นทาง

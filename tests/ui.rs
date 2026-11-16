@@ -35,6 +35,47 @@ fn pointer(p: Pos2, pressed: bool) -> Event {
     }
 }
 #[test]
+fn assetto_corsa_source_can_be_selected_and_switched_back_to_demo() {
+    let t = tempfile::tempdir().unwrap();
+    let ctx = egui::Context::default();
+    let mut app = DisplayApp::new(&ctx, t.path().join("state.json"));
+    frame(&mut app, &ctx, vec![]);
+    let output = frame(&mut app, &ctx, vec![]);
+    let source = text_pos(&output, "demo");
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(source), pointer(source, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(source, false)]);
+    let output = frame(&mut app, &ctx, vec![]);
+    let ac = text_pos(&output, "Assetto Corsa · Shared Memory");
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(ac), pointer(ac, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(ac, false)]);
+    let output = frame(&mut app, &ctx, vec![]);
+    let source = text_pos(&output, "ac");
+    text_pos(&output, "Shared Memory · เข้าไปขับในสนามเพื่อรับข้อมูล");
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(source), pointer(source, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(source, false)]);
+    let output = frame(&mut app, &ctx, vec![]);
+    let demo = text_pos(&output, "Demo / ข้อมูลจำลอง");
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(demo), pointer(demo, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(demo, false)]);
+    text_pos(&frame(&mut app, &ctx, vec![]), "DEMO");
+}
+#[test]
 fn search_reaches_output_fields_from_common_category_and_adds_one() {
     let t = tempfile::tempdir().unwrap();
     let ctx = egui::Context::default();

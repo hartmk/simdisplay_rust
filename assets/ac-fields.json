@@ -1,0 +1,1590 @@
+[
+  {
+    "id": 0,
+    "size": 580,
+    "group": "AC Physics",
+    "fields": [
+      {
+        "key": "ac.physics.gas",
+        "label": "AC Physics · Gas",
+        "offset": 4,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "%",
+        "description": "Assetto Corsa physics: gas (0–1 converted to %)",
+        "states": {},
+        "scale": 100.0
+      },
+      {
+        "key": "ac.physics.brake",
+        "label": "AC Physics · Brake",
+        "offset": 8,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "%",
+        "description": "Assetto Corsa physics: brake (0–1 converted to %)",
+        "states": {},
+        "scale": 100.0
+      },
+      {
+        "key": "ac.physics.fuel",
+        "label": "AC Physics · Fuel",
+        "offset": 12,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "L",
+        "description": "Assetto Corsa physics: fuel",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.gear",
+        "label": "AC Physics · Gear",
+        "offset": 16,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: gear",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.rpms",
+        "label": "AC Physics · Rpms",
+        "offset": 20,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "RPM",
+        "description": "Assetto Corsa physics: rpms",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.steerAngle",
+        "label": "AC Physics · Steer Angle",
+        "offset": 24,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "rad",
+        "description": "Assetto Corsa physics: steerAngle",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.speedKmh",
+        "label": "AC Physics · Speed Kmh",
+        "offset": 28,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "km/h",
+        "description": "Assetto Corsa physics: speedKmh",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.velocity",
+        "label": "AC Physics · Velocity",
+        "offset": 32,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 3,
+            "stride": 4,
+            "label": "Axis (X / Y / Z)"
+          }
+        ],
+        "unit": "m/s",
+        "description": "Assetto Corsa physics: velocity",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.accG",
+        "label": "AC Physics · Acc G",
+        "offset": 44,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 3,
+            "stride": 4,
+            "label": "Axis (X / Y / Z)"
+          }
+        ],
+        "unit": "G",
+        "description": "Assetto Corsa physics: accG",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.wheelSlip",
+        "label": "AC Physics · Wheel Slip",
+        "offset": 56,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "",
+        "description": "Assetto Corsa physics: wheelSlip",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.wheelLoad",
+        "label": "AC Physics · Wheel Load",
+        "offset": 72,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "N",
+        "description": "Assetto Corsa physics: wheelLoad",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.wheelsPressure",
+        "label": "AC Physics · Wheels Pressure",
+        "offset": 88,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "PSI",
+        "description": "Assetto Corsa physics: wheelsPressure",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.wheelAngularSpeed",
+        "label": "AC Physics · Wheel Angular Speed",
+        "offset": 104,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "rad/s",
+        "description": "Assetto Corsa physics: wheelAngularSpeed",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.tyreWear",
+        "label": "AC Physics · Tyre Wear",
+        "offset": 120,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "raw",
+        "description": "Assetto Corsa physics: tyreWear (raw game value; not converted to percentage worn)",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.tyreDirtyLevel",
+        "label": "AC Physics · Tyre Dirty Level",
+        "offset": 136,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "",
+        "description": "Assetto Corsa physics: tyreDirtyLevel",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.tyreCoreTemperature",
+        "label": "AC Physics · Tyre Core Temperature",
+        "offset": 152,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "°C",
+        "description": "Assetto Corsa physics: tyreCoreTemperature",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.camberRAD",
+        "label": "AC Physics · Camber RAD",
+        "offset": 168,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "rad",
+        "description": "Assetto Corsa physics: camberRAD",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.suspensionTravel",
+        "label": "AC Physics · Suspension Travel",
+        "offset": 184,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "m",
+        "description": "Assetto Corsa physics: suspensionTravel",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.drs",
+        "label": "AC Physics · Drs",
+        "offset": 200,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: drs",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.tc",
+        "label": "AC Physics · Tc",
+        "offset": 204,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "raw",
+        "description": "Assetto Corsa physics: tc (raw signal, not the F1 assist level)",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.heading",
+        "label": "AC Physics · Heading",
+        "offset": 208,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "rad",
+        "description": "Assetto Corsa physics: heading",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.pitch",
+        "label": "AC Physics · Pitch",
+        "offset": 212,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "rad",
+        "description": "Assetto Corsa physics: pitch",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.roll",
+        "label": "AC Physics · Roll",
+        "offset": 216,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "rad",
+        "description": "Assetto Corsa physics: roll",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.cgHeight",
+        "label": "AC Physics · Cg Height",
+        "offset": 220,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "m",
+        "description": "Assetto Corsa physics: cgHeight",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.carDamage",
+        "label": "AC Physics · Car Damage",
+        "offset": 224,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 5,
+            "stride": 4,
+            "label": "Zone (front / rear / left / right / centre)"
+          }
+        ],
+        "unit": "raw",
+        "description": "Assetto Corsa physics: carDamage",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.numberOfTyresOut",
+        "label": "AC Physics · Number Of Tyres Out",
+        "offset": 244,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: numberOfTyresOut",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.pitLimiterOn",
+        "label": "AC Physics · Pit Limiter On",
+        "offset": 248,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: pitLimiterOn",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.physics.abs",
+        "label": "AC Physics · Abs",
+        "offset": 252,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "raw",
+        "description": "Assetto Corsa physics: abs (raw signal, not the F1 assist level)",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.kersCharge",
+        "label": "AC Physics · Kers Charge",
+        "offset": 256,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "%",
+        "description": "Assetto Corsa physics: kersCharge (0–1 converted to %)",
+        "states": {},
+        "scale": 100.0
+      },
+      {
+        "key": "ac.physics.kersInput",
+        "label": "AC Physics · Kers Input",
+        "offset": 260,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "%",
+        "description": "Assetto Corsa physics: kersInput (0–1 converted to %)",
+        "states": {},
+        "scale": 100.0
+      },
+      {
+        "key": "ac.physics.autoShifterOn",
+        "label": "AC Physics · Auto Shifter On",
+        "offset": 264,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: autoShifterOn",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.physics.rideHeight",
+        "label": "AC Physics · Ride Height",
+        "offset": 268,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 2,
+            "stride": 4,
+            "label": "Item"
+          }
+        ],
+        "unit": "m",
+        "description": "Assetto Corsa physics: rideHeight",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.turboBoost",
+        "label": "AC Physics · Turbo Boost",
+        "offset": 276,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: turboBoost",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.ballast",
+        "label": "AC Physics · Ballast",
+        "offset": 280,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "kg",
+        "description": "Assetto Corsa physics: ballast",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.airDensity",
+        "label": "AC Physics · Air Density",
+        "offset": 284,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: airDensity",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.airTemp",
+        "label": "AC Physics · Air Temp",
+        "offset": 288,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "°C",
+        "description": "Assetto Corsa physics: airTemp",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.roadTemp",
+        "label": "AC Physics · Road Temp",
+        "offset": 292,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "°C",
+        "description": "Assetto Corsa physics: roadTemp",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.localAngularVel",
+        "label": "AC Physics · Local Angular Vel",
+        "offset": 296,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 3,
+            "stride": 4,
+            "label": "Axis (X / Y / Z)"
+          }
+        ],
+        "unit": "",
+        "description": "Assetto Corsa physics: localAngularVel",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.finalFF",
+        "label": "AC Physics · Final FF",
+        "offset": 308,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: finalFF",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.performanceMeter",
+        "label": "AC Physics · Performance Meter",
+        "offset": 312,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: performanceMeter",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.engineBrake",
+        "label": "AC Physics · Engine Brake",
+        "offset": 316,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: engineBrake",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.ersRecoveryLevel",
+        "label": "AC Physics · Ers Recovery Level",
+        "offset": 320,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: ersRecoveryLevel",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.ersPowerLevel",
+        "label": "AC Physics · Ers Power Level",
+        "offset": 324,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: ersPowerLevel",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.ersHeatCharging",
+        "label": "AC Physics · Ers Heat Charging",
+        "offset": 328,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: ersHeatCharging",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.physics.ersIsCharging",
+        "label": "AC Physics · Ers Is Charging",
+        "offset": 332,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: ersIsCharging",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.physics.kersCurrentKJ",
+        "label": "AC Physics · Kers Current KJ",
+        "offset": 336,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "kJ",
+        "description": "Assetto Corsa physics: kersCurrentKJ",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.drsAvailable",
+        "label": "AC Physics · Drs Available",
+        "offset": 340,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: drsAvailable",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.physics.drsEnabled",
+        "label": "AC Physics · Drs Enabled",
+        "offset": 344,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: drsEnabled",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.physics.brakeTemp",
+        "label": "AC Physics · Brake Temp",
+        "offset": 348,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "°C",
+        "description": "Assetto Corsa physics: brakeTemp",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.clutch",
+        "label": "AC Physics · Clutch",
+        "offset": 364,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "%",
+        "description": "Assetto Corsa physics: clutch (0–1 converted to %)",
+        "states": {},
+        "scale": 100.0
+      },
+      {
+        "key": "ac.physics.tyreTempI",
+        "label": "AC Physics · Tyre Temp I",
+        "offset": 368,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "°C",
+        "description": "Assetto Corsa physics: tyreTempI",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.tyreTempM",
+        "label": "AC Physics · Tyre Temp M",
+        "offset": 384,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "°C",
+        "description": "Assetto Corsa physics: tyreTempM",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.tyreTempO",
+        "label": "AC Physics · Tyre Temp O",
+        "offset": 400,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "°C",
+        "description": "Assetto Corsa physics: tyreTempO",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.isAIControlled",
+        "label": "AC Physics · Is AI Controlled",
+        "offset": 416,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa physics: isAIControlled",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.physics.tyreContactPoint",
+        "label": "AC Physics · Tyre Contact Point",
+        "offset": 420,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 12,
+            "label": "Wheel (FL / FR / RL / RR)"
+          },
+          {
+            "count": 3,
+            "stride": 4,
+            "label": "Axis (X / Y / Z)"
+          }
+        ],
+        "unit": "m",
+        "description": "Assetto Corsa physics: tyreContactPoint",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.tyreContactNormal",
+        "label": "AC Physics · Tyre Contact Normal",
+        "offset": 468,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 12,
+            "label": "Wheel (FL / FR / RL / RR)"
+          },
+          {
+            "count": 3,
+            "stride": 4,
+            "label": "Axis (X / Y / Z)"
+          }
+        ],
+        "unit": "",
+        "description": "Assetto Corsa physics: tyreContactNormal",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.tyreContactHeading",
+        "label": "AC Physics · Tyre Contact Heading",
+        "offset": 516,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 12,
+            "label": "Wheel (FL / FR / RL / RR)"
+          },
+          {
+            "count": 3,
+            "stride": 4,
+            "label": "Axis (X / Y / Z)"
+          }
+        ],
+        "unit": "",
+        "description": "Assetto Corsa physics: tyreContactHeading",
+        "states": {}
+      },
+      {
+        "key": "ac.physics.brakeBias",
+        "label": "AC Physics · Brake Bias",
+        "offset": 564,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "%",
+        "description": "Assetto Corsa physics: brakeBias (0–1 converted to %)",
+        "states": {},
+        "scale": 100.0
+      },
+      {
+        "key": "ac.physics.localVelocity",
+        "label": "AC Physics · Local Velocity",
+        "offset": 568,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 3,
+            "stride": 4,
+            "label": "Axis (X / Y / Z)"
+          }
+        ],
+        "unit": "m/s",
+        "description": "Assetto Corsa physics: localVelocity",
+        "states": {}
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "size": 296,
+    "group": "AC Graphics",
+    "fields": [
+      {
+        "key": "ac.graphics.status",
+        "label": "AC Graphics · Status",
+        "offset": 4,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: status",
+        "states": {
+          "0": "OFF",
+          "1": "REPLAY",
+          "2": "LIVE",
+          "3": "PAUSED"
+        }
+      },
+      {
+        "key": "ac.graphics.session",
+        "label": "AC Graphics · Session",
+        "offset": 8,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: session",
+        "states": {
+          "-1": "UNKNOWN",
+          "0": "PRACTICE",
+          "1": "QUALIFY",
+          "2": "RACE",
+          "3": "HOTLAP",
+          "4": "TIME ATTACK",
+          "5": "DRIFT",
+          "6": "DRAG"
+        }
+      },
+      {
+        "key": "ac.graphics.currentTime",
+        "label": "AC Graphics · Current Time",
+        "offset": 12,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: currentTime",
+        "states": {},
+        "text_len": 15
+      },
+      {
+        "key": "ac.graphics.lastTime",
+        "label": "AC Graphics · Last Time",
+        "offset": 42,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: lastTime",
+        "states": {},
+        "text_len": 15
+      },
+      {
+        "key": "ac.graphics.bestTime",
+        "label": "AC Graphics · Best Time",
+        "offset": 72,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: bestTime",
+        "states": {},
+        "text_len": 15
+      },
+      {
+        "key": "ac.graphics.split",
+        "label": "AC Graphics · Split",
+        "offset": 102,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: split",
+        "states": {},
+        "text_len": 15
+      },
+      {
+        "key": "ac.graphics.completedLaps",
+        "label": "AC Graphics · Completed Laps",
+        "offset": 132,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: completedLaps",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.position",
+        "label": "AC Graphics · Position",
+        "offset": 136,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: position",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.iCurrentTime",
+        "label": "AC Graphics · I Current Time",
+        "offset": 140,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "ms",
+        "description": "Assetto Corsa graphics: iCurrentTime",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.iLastTime",
+        "label": "AC Graphics · I Last Time",
+        "offset": 144,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "ms",
+        "description": "Assetto Corsa graphics: iLastTime",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.iBestTime",
+        "label": "AC Graphics · I Best Time",
+        "offset": 148,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "ms",
+        "description": "Assetto Corsa graphics: iBestTime",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.sessionTimeLeft",
+        "label": "AC Graphics · Session Time Left",
+        "offset": 152,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "ms",
+        "description": "Assetto Corsa graphics: sessionTimeLeft",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.distanceTraveled",
+        "label": "AC Graphics · Distance Traveled",
+        "offset": 156,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "m",
+        "description": "Assetto Corsa graphics: distanceTraveled",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.isInPit",
+        "label": "AC Graphics · Is In Pit",
+        "offset": 160,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: isInPit",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.graphics.currentSectorIndex",
+        "label": "AC Graphics · Current Sector Index",
+        "offset": 164,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: currentSectorIndex",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.lastSectorTime",
+        "label": "AC Graphics · Last Sector Time",
+        "offset": 168,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "ms",
+        "description": "Assetto Corsa graphics: lastSectorTime",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.numberOfLaps",
+        "label": "AC Graphics · Number Of Laps",
+        "offset": 172,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: numberOfLaps",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.tyreCompound",
+        "label": "AC Graphics · Tyre Compound",
+        "offset": 176,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: tyreCompound",
+        "states": {},
+        "text_len": 33
+      },
+      {
+        "key": "ac.graphics.replayTimeMultiplier",
+        "label": "AC Graphics · Replay Time Multiplier",
+        "offset": 244,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: replayTimeMultiplier",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.normalizedCarPosition",
+        "label": "AC Graphics · Normalized Car Position",
+        "offset": 248,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: normalizedCarPosition",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.carCoordinates",
+        "label": "AC Graphics · Car Coordinates",
+        "offset": 252,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 3,
+            "stride": 4,
+            "label": "Axis (X / Y / Z)"
+          }
+        ],
+        "unit": "m",
+        "description": "Assetto Corsa graphics: carCoordinates",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.penaltyTime",
+        "label": "AC Graphics · Penalty Time",
+        "offset": 264,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: penaltyTime",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.flag",
+        "label": "AC Graphics · Flag",
+        "offset": 268,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: flag",
+        "states": {
+          "0": "NONE",
+          "1": "BLUE",
+          "2": "YELLOW",
+          "3": "BLACK",
+          "4": "WHITE",
+          "5": "CHECKERED",
+          "6": "PENALTY"
+        }
+      },
+      {
+        "key": "ac.graphics.idealLineOn",
+        "label": "AC Graphics · Ideal Line On",
+        "offset": 272,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: idealLineOn",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.graphics.isInPitLine",
+        "label": "AC Graphics · Is In Pit Line",
+        "offset": 276,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: isInPitLine",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.graphics.surfaceGrip",
+        "label": "AC Graphics · Surface Grip",
+        "offset": 280,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: surfaceGrip",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.mandatoryPitDone",
+        "label": "AC Graphics · Mandatory Pit Done",
+        "offset": 284,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: mandatoryPitDone",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.graphics.windSpeed",
+        "label": "AC Graphics · Wind Speed",
+        "offset": 288,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: windSpeed",
+        "states": {}
+      },
+      {
+        "key": "ac.graphics.windDirection",
+        "label": "AC Graphics · Wind Direction",
+        "offset": 292,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa graphics: windDirection",
+        "states": {}
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "size": 684,
+    "group": "AC Static",
+    "fields": [
+      {
+        "key": "ac.static._smVersion",
+        "label": "AC Static · Sm Version",
+        "offset": 0,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: _smVersion",
+        "states": {},
+        "text_len": 15
+      },
+      {
+        "key": "ac.static._acVersion",
+        "label": "AC Static · Ac Version",
+        "offset": 30,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: _acVersion",
+        "states": {},
+        "text_len": 15
+      },
+      {
+        "key": "ac.static.numberOfSessions",
+        "label": "AC Static · Number Of Sessions",
+        "offset": 60,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: numberOfSessions",
+        "states": {}
+      },
+      {
+        "key": "ac.static.numCars",
+        "label": "AC Static · Num Cars",
+        "offset": 64,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: numCars",
+        "states": {}
+      },
+      {
+        "key": "ac.static.carModel",
+        "label": "AC Static · Car Model",
+        "offset": 68,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: carModel",
+        "states": {},
+        "text_len": 33
+      },
+      {
+        "key": "ac.static.track",
+        "label": "AC Static · Track",
+        "offset": 134,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: track",
+        "states": {},
+        "text_len": 33
+      },
+      {
+        "key": "ac.static.playerName",
+        "label": "AC Static · Player Name",
+        "offset": 200,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: playerName",
+        "states": {},
+        "text_len": 33
+      },
+      {
+        "key": "ac.static.playerSurname",
+        "label": "AC Static · Player Surname",
+        "offset": 266,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: playerSurname",
+        "states": {},
+        "text_len": 33
+      },
+      {
+        "key": "ac.static.playerNick",
+        "label": "AC Static · Player Nick",
+        "offset": 332,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: playerNick",
+        "states": {},
+        "text_len": 33
+      },
+      {
+        "key": "ac.static.sectorCount",
+        "label": "AC Static · Sector Count",
+        "offset": 400,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: sectorCount",
+        "states": {}
+      },
+      {
+        "key": "ac.static.maxTorque",
+        "label": "AC Static · Max Torque",
+        "offset": 404,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "Nm",
+        "description": "Assetto Corsa static: maxTorque",
+        "states": {}
+      },
+      {
+        "key": "ac.static.maxPower",
+        "label": "AC Static · Max Power",
+        "offset": 408,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: maxPower",
+        "states": {}
+      },
+      {
+        "key": "ac.static.maxRpm",
+        "label": "AC Static · Max Rpm",
+        "offset": 412,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "RPM",
+        "description": "Assetto Corsa static: maxRpm",
+        "states": {}
+      },
+      {
+        "key": "ac.static.maxFuel",
+        "label": "AC Static · Max Fuel",
+        "offset": 416,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "L",
+        "description": "Assetto Corsa static: maxFuel",
+        "states": {}
+      },
+      {
+        "key": "ac.static.suspensionMaxTravel",
+        "label": "AC Static · Suspension Max Travel",
+        "offset": 420,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "m",
+        "description": "Assetto Corsa static: suspensionMaxTravel",
+        "states": {}
+      },
+      {
+        "key": "ac.static.tyreRadius",
+        "label": "AC Static · Tyre Radius",
+        "offset": 436,
+        "kind": "float",
+        "dimensions": [
+          {
+            "count": 4,
+            "stride": 4,
+            "label": "Wheel (FL / FR / RL / RR)"
+          }
+        ],
+        "unit": "m",
+        "description": "Assetto Corsa static: tyreRadius",
+        "states": {}
+      },
+      {
+        "key": "ac.static.maxTurboBoost",
+        "label": "AC Static · Max Turbo Boost",
+        "offset": 452,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: maxTurboBoost",
+        "states": {}
+      },
+      {
+        "key": "ac.static.airTemp",
+        "label": "AC Static · Air Temp",
+        "offset": 456,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "°C",
+        "description": "Assetto Corsa static: airTemp",
+        "states": {}
+      },
+      {
+        "key": "ac.static.roadTemp",
+        "label": "AC Static · Road Temp",
+        "offset": 460,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "°C",
+        "description": "Assetto Corsa static: roadTemp",
+        "states": {}
+      },
+      {
+        "key": "ac.static.penaltiesEnabled",
+        "label": "AC Static · Penalties Enabled",
+        "offset": 464,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: penaltiesEnabled",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.aidFuelRate",
+        "label": "AC Static · Aid Fuel Rate",
+        "offset": 468,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: aidFuelRate",
+        "states": {}
+      },
+      {
+        "key": "ac.static.aidTireRate",
+        "label": "AC Static · Aid Tire Rate",
+        "offset": 472,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: aidTireRate",
+        "states": {}
+      },
+      {
+        "key": "ac.static.aidMechanicalDamage",
+        "label": "AC Static · Aid Mechanical Damage",
+        "offset": 476,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: aidMechanicalDamage",
+        "states": {}
+      },
+      {
+        "key": "ac.static.aidAllowTyreBlankets",
+        "label": "AC Static · Aid Allow Tyre Blankets",
+        "offset": 480,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: aidAllowTyreBlankets",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.aidStability",
+        "label": "AC Static · Aid Stability",
+        "offset": 484,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: aidStability",
+        "states": {}
+      },
+      {
+        "key": "ac.static.aidAutoClutch",
+        "label": "AC Static · Aid Auto Clutch",
+        "offset": 488,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: aidAutoClutch",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.aidAutoBlip",
+        "label": "AC Static · Aid Auto Blip",
+        "offset": 492,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: aidAutoBlip",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.hasDRS",
+        "label": "AC Static · Has DRS",
+        "offset": 496,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: hasDRS",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.hasERS",
+        "label": "AC Static · Has ERS",
+        "offset": 500,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: hasERS",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.hasKERS",
+        "label": "AC Static · Has KERS",
+        "offset": 504,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: hasKERS",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.kersMaxJ",
+        "label": "AC Static · Kers Max J",
+        "offset": 508,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "J",
+        "description": "Assetto Corsa static: kersMaxJ",
+        "states": {}
+      },
+      {
+        "key": "ac.static.engineBrakeSettingsCount",
+        "label": "AC Static · Engine Brake Settings Count",
+        "offset": 512,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: engineBrakeSettingsCount",
+        "states": {}
+      },
+      {
+        "key": "ac.static.ersPowerControllerCount",
+        "label": "AC Static · Ers Power Controller Count",
+        "offset": 516,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: ersPowerControllerCount",
+        "states": {}
+      },
+      {
+        "key": "ac.static.trackSPlineLength",
+        "label": "AC Static · Track S Pline Length",
+        "offset": 520,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "m",
+        "description": "Assetto Corsa static: trackSPlineLength",
+        "states": {}
+      },
+      {
+        "key": "ac.static.trackConfiguration",
+        "label": "AC Static · Track Configuration",
+        "offset": 524,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: trackConfiguration",
+        "states": {},
+        "text_len": 33
+      },
+      {
+        "key": "ac.static.ersMaxJ",
+        "label": "AC Static · Ers Max J",
+        "offset": 592,
+        "kind": "float",
+        "dimensions": [],
+        "unit": "J",
+        "description": "Assetto Corsa static: ersMaxJ",
+        "states": {}
+      },
+      {
+        "key": "ac.static.isTimedRace",
+        "label": "AC Static · Is Timed Race",
+        "offset": 596,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: isTimedRace",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.hasExtraLap",
+        "label": "AC Static · Has Extra Lap",
+        "offset": 600,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: hasExtraLap",
+        "states": {
+          "0": "OFF",
+          "1": "ON"
+        }
+      },
+      {
+        "key": "ac.static.carSkin",
+        "label": "AC Static · Car Skin",
+        "offset": 604,
+        "kind": "utf16",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: carSkin",
+        "states": {},
+        "text_len": 33
+      },
+      {
+        "key": "ac.static.reversedGridPositions",
+        "label": "AC Static · Reversed Grid Positions",
+        "offset": 672,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: reversedGridPositions",
+        "states": {}
+      },
+      {
+        "key": "ac.static.pitWindowStart",
+        "label": "AC Static · Pit Window Start",
+        "offset": 676,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: pitWindowStart",
+        "states": {}
+      },
+      {
+        "key": "ac.static.pitWindowEnd",
+        "label": "AC Static · Pit Window End",
+        "offset": 680,
+        "kind": "int32",
+        "dimensions": [],
+        "unit": "",
+        "description": "Assetto Corsa static: pitWindowEnd",
+        "states": {}
+      }
+    ]
+  }
+]

@@ -94,3 +94,19 @@ Common is the default widget category. Category browsing and global word-based s
 Windows checks passed: cargo fmt --check; cargo test --release --locked (51 tests); cargo clippy --release --locked --all-targets -- -D warnings; cargo build --release --locked. Tests cover all packet sizes and truncation, final-car offsets, per-car UTF-8/RGB arrays, event union clearing, multidimensional lap positions and valid counts, session reset and slow/event-driven field retention, every new widget's Demo/missing rendering and JSON round-trip, invalid indices, and UI search/add interaction.
 
 Live-game packets have not yet verified this expanded catalog.
+
+## Assetto Corsa shared memory — 2026-11-16
+
+Added the original Assetto Corsa Windows receiver with automatic retry and LIVE/PAUSED/REPLAY/WAITING/ERROR status. It opens existing Local\acpmf_physics, Local\acpmf_graphics, Local\acpmf_static mappings using FILE_MAP_READ. It never creates game mappings. The production receiver checks for acs.exe or acs_x86.exe to distinguish AC from other games with the same mapping names. Missing games, incomplete connections and frozen counters return empty WAITING snapshots. Volatile page copies compare packet counters with bounded retries; this is a best-effort snapshot per page, not a transaction across all pages.
+
+Added 130 selectable fields: AC Physics (59), AC Graphics (29), AC Static (42). Metadata follows pack(4) and Windows UTF-16, with page sizes 580/296/684 bytes. Contact vectors use wheel[4][XYZ=3], correcting the Python helper's nested multiplication order. Python generates checked-in metadata only; the runtime is Rust.
+
+Common mapping covers gear conversion (AC 0/1/2 to R/N/1), litres, pedal percentages, RPM/max RPM, lap timing, lap count, position, session time conversion to seconds, tyre core temperatures/pressures in FL/FR/RL/RR order, brake temperatures, compound and DRS for supported cars. TC, ABS and tyre wear remain raw AC fields. Unsupported Common ERS energy/power/mode remain missing. KERS charge is offered as a percentage without inferring stored energy from per-lap deployment limits.
+
+Windows validation passed: cargo fmt --check; cargo test --release --locked (58 tests); cargo clippy --release --locked --all-targets -- -D warnings; cargo build --release --locked. Coverage includes isolated real Windows named mappings, missing/partial connection cleanup, subsequent updates and reconnect, UTF-16 Thai/surrogate pairs, 4x3 contact arrays, wheel order, unit/gear/time conversion, invalid numbers, missing capabilities, stale-counter recovery, status handling, widget Demo/missing rendering and layout round-trips, and UI selection of AC and return to Demo.
+
+References:
+- https://www.assettocorsamods.net/threads/doc-shared-memory-reference.58/
+- https://github.com/ac-custom-shaders-patch/acc-extension-apps/blob/master/apps/python/AccExtHelper/sim_info.py
+
+Actual AC driving-session telemetry remains unverified.

@@ -25,7 +25,11 @@ pub fn widget_inspector(
     }
     if let Some(field) = crate::f1_output::field(&w.kind) {
         ui.separator();
-        ui.label("ข้อมูลจากเกม · F1 25 format 2025");
+        ui.label(if w.kind.starts_with("ac.") {
+            "ข้อมูลจากเกม · Assetto Corsa"
+        } else {
+            "ข้อมูลจากเกม · F1 25 format 2025"
+        });
         ui.small(&field.description);
         w.output_indices.resize(field.dimensions.len(), None);
         for (i, dim) in field.dimensions.iter().enumerate() {

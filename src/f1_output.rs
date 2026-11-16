@@ -24,6 +24,11 @@ pub struct OutputField {
     pub text_len: usize,
     pub states: HashMap<String, String>,
     pub event: Option<String>,
+    #[serde(default = "unit_scale")]
+    pub scale: f64,
+}
+fn unit_scale() -> f64 {
+    1.
 }
 #[derive(Deserialize)]
 pub struct Dimension {
@@ -47,6 +52,7 @@ pub fn field(key: &str) -> Option<&'static OutputField> {
         .get_or_init(|| {
             packets()
                 .iter()
+                .chain(crate::ac::packets())
                 .flat_map(|p| &p.fields)
                 .map(|f| (f.key.as_str(), f))
                 .collect()
@@ -115,9 +121,9 @@ pub fn demo() -> &'static Data {
     static DEMO: OnceLock<Data> = OnceLock::new();
     DEMO.get_or_init(|| {
         let mut data = Data::new();
-        for packet in packets() {
+        for packet in packets().iter().chain(crate::ac::packets()) {
             for field in &packet.fields {
-                let value = if field.kind == "char" {
+                let value = if matches!(field.kind.as_str(), "char" | "utf16") {
                     json!(if field.text_len == 4 {
                         "FTLP"
                     } else {
@@ -159,7 +165,12 @@ pub fn demo() -> &'static Data {
         data
     })
 }
-fn read_dimensions(bytes: &[u8], field: &OutputField, level: usize, offset: usize) -> Value {
+pub(crate) fn read_dimensions(
+    bytes: &[u8],
+    field: &OutputField,
+    level: usize,
+    offset: usize,
+) -> Value {
     if let Some(dim) = field.dimensions.get(level) {
         let valid = dim
             .valid_count_offset
@@ -180,6 +191,21 @@ fn read_dimensions(bytes: &[u8], field: &OutputField, level: usize, offset: usiz
     }
     // Checked slices keep even malformed metadata/input from reading out of bounds.
     let n = match field.kind.as_str() {
+        "utf16" => {
+            return bytes
+                .get(offset..offset + field.text_len * 2)
+                .map(|s| {
+                    let units: Vec<u16> = s
+                        .as_chunks::<2>()
+                        .0
+                        .iter()
+                        .map(|b| u16::from_le_bytes([b[0], b[1]]))
+                        .take_while(|n| *n != 0)
+                        .collect();
+                    json!(String::from_utf16_lossy(&units))
+                })
+                .unwrap_or(Value::Null);
+        }
         "char" => {
             return bytes
                 .get(offset..offset + field.text_len)
@@ -202,6 +228,9 @@ fn read_dimensions(bytes: &[u8], field: &OutputField, level: usize, offset: usiz
         "int16" => bytes
             .get(offset..offset + 2)
             .map(|s| i16::from_le_bytes(s.try_into().unwrap()) as f64),
+        "int32" => bytes
+            .get(offset..offset + 4)
+            .map(|s| i32::from_le_bytes(s.try_into().unwrap()) as f64),
         "uint32" | "uint" | "NEuint" => bytes
             .get(offset..offset + 4)
             .map(|s| u32::from_le_bytes(s.try_into().unwrap()) as f64),
@@ -213,7 +242,8 @@ fn read_dimensions(bytes: &[u8], field: &OutputField, level: usize, offset: usiz
             .map(|s| f64::from_le_bytes(s.try_into().unwrap())),
         _ => None,
     };
-    n.filter(|n| n.is_finite())
+    n.map(|n| n * field.scale)
+        .filter(|n| n.is_finite())
         .map(|n| json!(n))
         .unwrap_or(Value::Null)
 }

@@ -26,7 +26,10 @@ pub const CATALOG: [(&str, &str, f64); 22] = [
     ("text", "Custom text", 58.),
 ];
 pub fn catalog() -> impl Iterator<Item = (&'static str, &'static str, f64)> {
-    CATALOG.into_iter().chain(crate::f1_output::catalog())
+    CATALOG
+        .into_iter()
+        .chain(crate::f1_output::catalog())
+        .chain(crate::ac::catalog())
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
