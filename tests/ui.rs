@@ -41,6 +41,7 @@ fn assetto_corsa_source_can_be_selected_and_switched_back_to_demo() {
     let mut app = DisplayApp::new(&ctx, t.path().join("state.json"));
     frame(&mut app, &ctx, vec![]);
     let output = frame(&mut app, &ctx, vec![]);
+    let original_layout = app.editor.layout.clone();
     let source = text_pos(&output, "demo");
     frame(
         &mut app,
@@ -56,6 +57,83 @@ fn assetto_corsa_source_can_be_selected_and_switched_back_to_demo() {
         vec![Event::PointerMoved(ac), pointer(ac, true)],
     );
     frame(&mut app, &ctx, vec![pointer(ac, false)]);
+    let output = frame(&mut app, &ctx, vec![]);
+    assert_eq!(app.editor.layout, original_layout);
+    text_pos(&output, "Physics Telemetry");
+    text_pos(&output, "gas");
+    // Search must cross AC categories without exposing F1 or unrequested static fields.
+    let search = text_pos(&output, "ค้นหาวิดเจ็ตทุกหมวด");
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(search), pointer(search, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(search, false)]);
+    frame(&mut app, &ctx, vec![Event::Text("isInPitLane".into())]);
+    let output = frame(&mut app, &ctx, vec![]);
+    let pit = output
+        .shapes
+        .iter()
+        .find_map(|shape| {
+            if let egui::Shape::Text(text) = &shape.shape {
+                if text.galley.text() == "isInPitLane" && text.pos.y > search.y + 25. {
+                    return Some(text.pos + text.galley.size() / 2.);
+                }
+            }
+            None
+        })
+        .expect("Pit Lane library button below the search input");
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(pit), pointer(pit, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(pit, false)]);
+    assert_eq!(
+        app.editor.layout.widgets.len(),
+        original_layout.widgets.len() + 1
+    );
+    assert_eq!(
+        app.editor.selected_mut().unwrap().kind,
+        "ac.graphics.isInPitLine"
+    );
+    let output = frame(&mut app, &ctx, vec![]);
+    for forbidden in ["frontLeftWingDamage", "carModel"] {
+        let search = text_pos(&output, "isInPitLane");
+        // The input retains the original search; after the first iteration it changes.
+        let search = if forbidden == "carModel" {
+            text_pos(&frame(&mut app, &ctx, vec![]), "frontLeftWingDamage")
+        } else {
+            search
+        };
+        frame(
+            &mut app,
+            &ctx,
+            vec![Event::PointerMoved(search), pointer(search, true)],
+        );
+        frame(&mut app, &ctx, vec![pointer(search, false)]);
+        frame(
+            &mut app,
+            &ctx,
+            vec![Event::Key {
+                key: egui::Key::A,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: egui::Modifiers {
+                    command: true,
+                    ctrl: true,
+                    ..Default::default()
+                },
+            }],
+        );
+        frame(&mut app, &ctx, vec![Event::Text(forbidden.into())]);
+        let result = frame(&mut app, &ctx, vec![]);
+        assert!(!result.shapes.iter().any(|shape| {
+            matches!(&shape.shape, egui::Shape::Text(text)
+                if text.galley.text().contains(forbidden) && text.pos.x < 180. && text.pos.y > search.y + 25.)
+        }), "AC search exposed {forbidden}");
+    }
     let output = frame(&mut app, &ctx, vec![]);
     let source = text_pos(&output, "ac");
     text_pos(&output, "Shared Memory · เข้าไปขับในสนามเพื่อรับข้อมูล");

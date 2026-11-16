@@ -10,10 +10,9 @@
         "offset": 4,
         "kind": "float",
         "dimensions": [],
-        "unit": "%",
-        "description": "Assetto Corsa physics: gas (0–1 converted to %)",
-        "states": {},
-        "scale": 100.0
+        "unit": "0–1",
+        "description": "Assetto Corsa physics: gas (0–1)",
+        "states": {}
       },
       {
         "key": "ac.physics.brake",
@@ -21,10 +20,9 @@
         "offset": 8,
         "kind": "float",
         "dimensions": [],
-        "unit": "%",
-        "description": "Assetto Corsa physics: brake (0–1 converted to %)",
-        "states": {},
-        "scale": 100.0
+        "unit": "0–1",
+        "description": "Assetto Corsa physics: brake (0–1)",
+        "states": {}
       },
       {
         "key": "ac.physics.fuel",
@@ -259,7 +257,7 @@
         "kind": "float",
         "dimensions": [],
         "unit": "",
-        "description": "Assetto Corsa physics: drs",
+        "description": "Assetto Corsa physics: drs · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {}
       },
       {
@@ -269,7 +267,7 @@
         "kind": "float",
         "dimensions": [],
         "unit": "raw",
-        "description": "Assetto Corsa physics: tc (raw signal, not the F1 assist level)",
+        "description": "Assetto Corsa physics: tc (raw signal, not the F1 assist level) · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {}
       },
       {
@@ -358,7 +356,7 @@
         "kind": "float",
         "dimensions": [],
         "unit": "raw",
-        "description": "Assetto Corsa physics: abs (raw signal, not the F1 assist level)",
+        "description": "Assetto Corsa physics: abs (raw signal, not the F1 assist level) · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {}
       },
       {
@@ -368,7 +366,7 @@
         "kind": "float",
         "dimensions": [],
         "unit": "%",
-        "description": "Assetto Corsa physics: kersCharge (0–1 converted to %)",
+        "description": "Assetto Corsa physics: kersCharge (0–1 converted to %) · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {},
         "scale": 100.0
       },
@@ -379,7 +377,7 @@
         "kind": "float",
         "dimensions": [],
         "unit": "%",
-        "description": "Assetto Corsa physics: kersInput (0–1 converted to %)",
+        "description": "Assetto Corsa physics: kersInput (0–1 converted to %) · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {},
         "scale": 100.0
       },
@@ -405,7 +403,7 @@
           {
             "count": 2,
             "stride": 4,
-            "label": "Item"
+            "label": "Position (front / rear)"
           }
         ],
         "unit": "m",
@@ -505,7 +503,7 @@
         "kind": "int32",
         "dimensions": [],
         "unit": "",
-        "description": "Assetto Corsa physics: engineBrake",
+        "description": "Assetto Corsa physics: engineBrake · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {}
       },
       {
@@ -515,7 +513,7 @@
         "kind": "int32",
         "dimensions": [],
         "unit": "",
-        "description": "Assetto Corsa physics: ersRecoveryLevel",
+        "description": "Assetto Corsa physics: ersRecoveryLevel · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {}
       },
       {
@@ -525,7 +523,7 @@
         "kind": "int32",
         "dimensions": [],
         "unit": "",
-        "description": "Assetto Corsa physics: ersPowerLevel",
+        "description": "Assetto Corsa physics: ersPowerLevel · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {}
       },
       {
@@ -548,7 +546,7 @@
         "kind": "int32",
         "dimensions": [],
         "unit": "",
-        "description": "Assetto Corsa physics: ersIsCharging",
+        "description": "Assetto Corsa physics: ersIsCharging · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {
           "0": "OFF",
           "1": "ON"
@@ -561,7 +559,7 @@
         "kind": "float",
         "dimensions": [],
         "unit": "kJ",
-        "description": "Assetto Corsa physics: kersCurrentKJ",
+        "description": "Assetto Corsa physics: kersCurrentKJ · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {}
       },
       {
@@ -571,7 +569,7 @@
         "kind": "int32",
         "dimensions": [],
         "unit": "",
-        "description": "Assetto Corsa physics: drsAvailable",
+        "description": "Assetto Corsa physics: drsAvailable · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {
           "0": "OFF",
           "1": "ON"
@@ -584,7 +582,7 @@
         "kind": "int32",
         "dimensions": [],
         "unit": "",
-        "description": "Assetto Corsa physics: drsEnabled",
+        "description": "Assetto Corsa physics: drsEnabled · ขึ้นอยู่กับระบบที่รถรองรับ",
         "states": {
           "0": "OFF",
           "1": "ON"
@@ -603,7 +601,7 @@
           }
         ],
         "unit": "°C",
-        "description": "Assetto Corsa physics: brakeTemp",
+        "description": "Assetto Corsa physics: brakeTemp · บางรุ่นรถหรือ Mod อาจส่งค่าคงที่",
         "states": {}
       },
       {
@@ -612,10 +610,9 @@
         "offset": 364,
         "kind": "float",
         "dimensions": [],
-        "unit": "%",
-        "description": "Assetto Corsa physics: clutch (0–1 converted to %)",
-        "states": {},
-        "scale": 100.0
+        "unit": "0–1",
+        "description": "Assetto Corsa physics: clutch (0–1)",
+        "states": {}
       },
       {
         "key": "ac.physics.tyreTempI",
@@ -747,10 +744,9 @@
         "offset": 564,
         "kind": "float",
         "dimensions": [],
-        "unit": "%",
-        "description": "Assetto Corsa physics: brakeBias (0–1 converted to %)",
-        "states": {},
-        "scale": 100.0
+        "unit": "0–1",
+        "description": "Assetto Corsa physics: brakeBias (0–1)",
+        "states": {}
       },
       {
         "key": "ac.physics.localVelocity",
@@ -1061,7 +1057,7 @@
         "kind": "int32",
         "dimensions": [],
         "unit": "",
-        "description": "Assetto Corsa graphics: isInPitLine",
+        "description": "Assetto Corsa graphics: isInPitLine · isInPitLane (Pit Lane)",
         "states": {
           "0": "OFF",
           "1": "ON"

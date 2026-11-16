@@ -19,6 +19,115 @@ pub fn catalog() -> impl Iterator<Item = (&'static str, &'static str, f64)> {
         .flat_map(|p| &p.fields)
         .map(|f| (f.key.as_str(), f.label.as_str(), 64.))
 }
+/// Curated library categories, independent of the binary shared-memory pages.
+/// Keep the full catalog available for loading existing layouts.
+pub const WIDGET_GROUPS: &[(&str, &[&str])] = &[
+    (
+        "Physics Telemetry",
+        &[
+            "ac.physics.gas",
+            "ac.physics.brake",
+            "ac.physics.clutch",
+            "ac.physics.gear",
+            "ac.physics.rpms",
+            "ac.physics.speedKmh",
+            "ac.physics.steerAngle",
+            "ac.physics.fuel",
+            "ac.physics.turboBoost",
+            "ac.physics.brakeBias",
+            "ac.physics.pitLimiterOn",
+            "ac.physics.finalFF",
+            "ac.physics.performanceMeter",
+        ],
+    ),
+    (
+        "Tyre & Brake Telemetry",
+        &[
+            "ac.physics.wheelsPressure",
+            "ac.physics.tyreCoreTemperature",
+            "ac.physics.tyreTempI",
+            "ac.physics.tyreTempM",
+            "ac.physics.tyreTempO",
+            "ac.physics.tyreWear",
+            "ac.physics.tyreDirtyLevel",
+            "ac.physics.wheelSlip",
+            "ac.physics.wheelLoad",
+            "ac.physics.brakeTemp",
+            "ac.physics.camberRAD",
+            "ac.physics.suspensionTravel",
+        ],
+    ),
+    (
+        "Motion & Vehicle Dynamics",
+        &[
+            "ac.physics.velocity",
+            "ac.physics.localVelocity",
+            "ac.physics.accG",
+            "ac.physics.localAngularVel",
+            "ac.physics.heading",
+            "ac.physics.pitch",
+            "ac.physics.roll",
+            "ac.physics.rideHeight",
+            "ac.physics.cgHeight",
+            "ac.physics.carDamage",
+        ],
+    ),
+    (
+        "ERS, KERS, DRS & Assists",
+        &[
+            "ac.physics.drs",
+            "ac.physics.drsAvailable",
+            "ac.physics.drsEnabled",
+            "ac.physics.kersCharge",
+            "ac.physics.kersInput",
+            "ac.physics.kersCurrentKJ",
+            "ac.physics.ersRecoveryLevel",
+            "ac.physics.ersPowerLevel",
+            "ac.physics.ersIsCharging",
+            "ac.physics.tc",
+            "ac.physics.abs",
+            "ac.physics.engineBrake",
+        ],
+    ),
+    (
+        "Lap, Race & Session Data",
+        &[
+            "ac.graphics.currentTime",
+            "ac.graphics.lastTime",
+            "ac.graphics.bestTime",
+            "ac.graphics.iCurrentTime",
+            "ac.graphics.iLastTime",
+            "ac.graphics.iBestTime",
+            "ac.graphics.completedLaps",
+            "ac.graphics.position",
+            "ac.graphics.currentSectorIndex",
+            "ac.graphics.sessionTimeLeft",
+            "ac.graphics.normalizedCarPosition",
+            "ac.graphics.isInPit",
+            "ac.graphics.isInPitLine",
+            "ac.graphics.flag",
+            "ac.graphics.tyreCompound",
+            "ac.graphics.surfaceGrip",
+        ],
+    ),
+];
+
+pub fn widget_group(key: &str) -> Option<&'static str> {
+    WIDGET_GROUPS
+        .iter()
+        .find(|(_, keys)| keys.contains(&key))
+        .map(|(group, _)| *group)
+}
+
+pub fn widget_name(key: &str) -> &str {
+    // AC's shared-memory member is spelled isInPitLine; expose the familiar name.
+    if key == "ac.graphics.isInPitLine" {
+        "isInPitLane"
+    } else {
+        key.rsplit('.').next().unwrap_or(key)
+    }
+}
+
 pub fn parse(physics: &[u8], graphics: &[u8], statics: &[u8]) -> Option<Data> {
     let pages = [physics, graphics, statics];
     if pages.iter().zip(packets()).any(|(b, p)| b.len() < p.size) {
@@ -40,7 +149,7 @@ pub fn parse(physics: &[u8], graphics: &[u8], statics: &[u8]) -> Option<Data> {
     };
     let positive = |key: &str| number(key).filter(|n| *n > 0.);
     let nonnegative = |key: &str| number(key).filter(|n| *n >= 0.);
-    let ratio = |key: &str| number(key).filter(|n| (0. ..=100.).contains(n));
+    let ratio = |key: &str| number(key).filter(|n| (0. ..=1.).contains(n));
     let gear = number("ac.physics.gear")
         .filter(|n| (0. ..=10.).contains(n))
         .map(|n| n - 1.);
@@ -53,7 +162,7 @@ pub fn parse(physics: &[u8], graphics: &[u8], statics: &[u8]) -> Option<Data> {
         "speed":nonnegative("ac.physics.speedKmh"), "gear":gear,
         "rpm":nonnegative("ac.physics.rpms"), "maxRpm":positive("ac.static.maxRpm"),
         "fuel":nonnegative("ac.physics.fuel"), "fuelUnit":"L",
-        "throttle":ratio("ac.physics.gas"), "brake":ratio("ac.physics.brake"),
+        "throttle":ratio("ac.physics.gas").map(|n| n * 100.), "brake":ratio("ac.physics.brake").map(|n| n * 100.),
         "lapTime":nonnegative("ac.graphics.iCurrentTime"), "lastLap":positive("ac.graphics.iLastTime"),
         "bestLap":positive("ac.graphics.iBestTime"), "position":positive("ac.graphics.position"),
         "lap":nonnegative("ac.graphics.completedLaps").map(|n|n+1.),

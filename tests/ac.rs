@@ -296,3 +296,48 @@ mod windows_mapping {
         }
     }
 }
+
+#[test]
+fn ac_raw_pedal_and_bias_fields_preserve_ratios() {
+    let (mut p, g, s) = pages();
+    for (offset, key) in [
+        (4, "gas"),
+        (8, "brake"),
+        (364, "clutch"),
+        (564, "brakeBias"),
+    ] {
+        put_float(&mut p, offset, 0.5);
+        let d = ac::parse(&p, &g, &s).unwrap();
+        assert_eq!(d[&format!("ac.physics.{key}")].as_f64(), Some(0.5), "{key}");
+    }
+    let d = ac::parse(&p, &g, &s).unwrap();
+    assert_eq!(d["throttle"].as_f64(), Some(50.));
+    assert_eq!(d["brake"].as_f64(), Some(50.));
+}
+
+#[test]
+fn curated_ac_fields_are_available_for_layouts_and_keep_array_dimensions() {
+    let mut layout = Layout::default();
+    layout.widgets.clear();
+    for (_, keys) in ac::WIDGET_GROUPS {
+        for key in *keys {
+            layout.widgets.push(Widget::new(key, &layout));
+        }
+    }
+    assert_eq!(layout.widgets.len(), 63);
+    layout.validate().unwrap();
+    let saved = serde_json::to_string(&layout).unwrap();
+    assert_eq!(Layout::parse(&saved).unwrap(), layout);
+    assert_eq!(
+        field("ac.physics.rideHeight").unwrap().dimensions[0].count,
+        2
+    );
+    assert_eq!(
+        field("ac.physics.carDamage").unwrap().dimensions[0].count,
+        5
+    );
+    assert_eq!(
+        field("ac.physics.localVelocity").unwrap().dimensions[0].count,
+        3
+    );
+}

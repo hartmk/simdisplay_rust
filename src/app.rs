@@ -131,6 +131,12 @@ impl DisplayApp {
         self.ac_receiver = None;
         self.connection_error.clear();
         self.source = source;
+        self.search.clear();
+        self.widget_group = if self.source == "ac" {
+            crate::ac::WIDGET_GROUPS[0].0.into()
+        } else {
+            "Common".into()
+        };
         if self.source == "f1" {
             match Receiver::bind("127.0.0.1:20777") {
                 Ok(r) => self.receiver = Some(r),
@@ -543,20 +549,31 @@ impl DisplayApp {
             ui.heading("Widgets");
             ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("ค้นหาวิดเจ็ตทุกหมวด"));
             egui::ComboBox::from_id_salt("widget-group").selected_text(&self.widget_group).show_ui(ui, |ui| {
-                ui.selectable_value(&mut self.widget_group, "Common".into(), "Common");
-                ui.selectable_value(&mut self.widget_group, "All".into(), "All outputs");
-                for packet in crate::f1_output::packets().iter().chain(crate::ac::packets()) {
-                    ui.selectable_value(&mut self.widget_group, packet.group.clone(), &packet.group);
+                if self.source == "ac" {
+                    for (group, _) in crate::ac::WIDGET_GROUPS {
+                        ui.selectable_value(&mut self.widget_group, (*group).into(), *group);
+                    }
+                } else {
+                    ui.selectable_value(&mut self.widget_group, "Common".into(), "Common");
+                    ui.selectable_value(&mut self.widget_group, "All".into(), "All outputs");
+                    for packet in crate::f1_output::packets().iter().chain(crate::ac::packets()) {
+                        ui.selectable_value(&mut self.widget_group, packet.group.clone(), &packet.group);
+                    }
                 }
             });
             ui.separator();
             egui::ScrollArea::vertical().show(ui, |ui| {
                 let search = self.search.trim().to_lowercase();
                 for (kind, label, _) in catalog() {
+                    let ac_group = crate::ac::widget_group(kind);
+                    if self.source == "ac" && ac_group.is_none() { continue; }
+                    let label = if self.source == "ac" { crate::ac::widget_name(kind) } else { label };
                     let field = crate::f1_output::field(kind);
-                    let matches_group = self.widget_group == "All"
+                    let matches_group = if self.source == "ac" {
+                        ac_group == Some(self.widget_group.as_str())
+                    } else { self.widget_group == "All"
                         || if self.widget_group == "Common" { field.is_none() }
-                           else { label.starts_with(&format!("{} · ", self.widget_group)) };
+                           else { label.starts_with(&format!("{} · ", self.widget_group)) } };
                     let searchable = format!("{label} {kind}").to_lowercase();
                     // Typing searches every category; category selection is a browsing filter.
                     if (search.is_empty() && matches_group)
