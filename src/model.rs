@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
-pub const CATALOG: [(&str, &str, f64); 19] = [
+pub const CATALOG: [(&str, &str, f64); 22] = [
     ("rpmNumber", "RPM number", 100.),
     ("gear", "Gear", 180.),
     ("speed", "Speed", 112.),
@@ -12,6 +12,9 @@ pub const CATALOG: [(&str, &str, f64); 19] = [
     ("lastLap", "Lap times", 80.),
     ("tyres", "Tyre temperature", 68.),
     ("fuel", "Fuel remaining", 76.),
+    ("ersEnergy", "ERS battery energy", 76.),
+    ("electricPower", "Electric motor power", 76.),
+    ("ersDeployMode", "ERS deployment mode", 64.),
     ("position", "Position", 92.),
     ("lap", "Lap number", 92.),
     ("throttle", "Throttle", 72.),
@@ -22,6 +25,9 @@ pub const CATALOG: [(&str, &str, f64); 19] = [
     ("sessionTime", "Session remaining", 76.),
     ("text", "Custom text", 58.),
 ];
+pub fn catalog() -> impl Iterator<Item = (&'static str, &'static str, f64)> {
+    CATALOG.into_iter().chain(crate::f1_output::catalog())
+}
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Layout {
@@ -53,6 +59,8 @@ pub struct Widget {
     pub threshold: Option<f64>,
     pub warning_color: String,
     pub locked: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub output_indices: Vec<Option<usize>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rpm_config: Option<RpmConfig>,
 }
@@ -295,10 +303,22 @@ impl Layout {
         let mut ids = HashSet::new();
         for w in &self.widgets {
             w.style.validate()?;
+            if let Some(field) = crate::f1_output::field(&w.kind) {
+                if w.output_indices.len() > field.dimensions.len()
+                    || w.output_indices
+                        .iter()
+                        .enumerate()
+                        .any(|(i, index)| index.is_some_and(|n| n >= field.dimensions[i].count))
+                {
+                    return Err("ลำดับข้อมูล Telemetry ไม่ถูกต้อง".into());
+                }
+            } else if !w.output_indices.is_empty() {
+                return Err("วิดเจ็ตนี้ไม่มีรายการ Telemetry ให้เลือก".into());
+            }
             if !ids.insert(&w.id)
                 || w.id.encode_utf16().count() > 80
                 || w.label.encode_utf16().count() > 120
-                || !CATALOG.iter().any(|c| c.0 == w.kind)
+                || !catalog().any(|c| c.0 == w.kind)
                 || !["sans", "mono", "condensed"].contains(&w.font.as_str())
                 || ![&w.color, &w.background, &w.warning_color]
                     .iter()
@@ -414,14 +434,11 @@ impl Widget {
     }
 
     pub fn new(kind: &str, l: &Layout) -> Self {
-        let (_, label, size) = CATALOG
-            .iter()
-            .find(|c| c.0 == kind)
-            .expect("catalog widget");
+        let (_, label, size) = catalog().find(|c| c.0 == kind).expect("catalog widget");
         let mut w = Self {
             id: uuid::Uuid::new_v4().to_string(),
             kind: kind.into(),
-            label: (*label).into(),
+            label: label.into(),
             x: 80.,
             y: 80.,
             w: 420.,
@@ -430,11 +447,12 @@ impl Widget {
             background: "#151b20".into(),
             background_opacity: 100.,
             font: "sans".into(),
-            font_size: *size,
+            font_size: size,
             style: WidgetStyle::default(),
             threshold: None,
             warning_color: "#ff654e".into(),
             locked: false,
+            output_indices: Vec::new(),
             rpm_config: if matches!(kind, "rpm" | "rpmNumber") {
                 Some(RpmConfig::default())
             } else {

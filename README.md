@@ -51,7 +51,7 @@ sh scripts/package-windows.sh x86
 - Import/Export JSON ใช้รูปแบบ version 1 ร่วมกับแอป Electron เดิม เลย์เอาต์เก่าได้รับค่าเริ่มต้นอัตโนมัติ
 - Preview ซ่อนเครื่องมือแก้ไข เลือกจอแล้วกด “เปิดบนจอแข่ง” เพื่อย้ายหน้าต่างไปเต็มจอ กด Escape กลับ editor
 
-วิดเจ็ตทั้งหมด 19 แบบ: RPM number, Gear, Speed, Engine RPM, Current lap, Best lap, Last lap, Lap times (last/best/current), Tyres, Fuel, Position, Lap, Throttle, Brake, DRS active, Traction control, ABS, Session remaining และ Custom text
+วิดเจ็ตทั้งหมด 22 แบบ: RPM number, Gear, Speed, Engine RPM, Current lap, Best lap, Last lap, Lap times (last/best/current), Tyres, Fuel, ERS battery energy, Electric motor power, ERS deployment mode, Position, Lap, Throttle, Brake, DRS active, Traction control, ABS, Session remaining และ Custom text
 
 Best lap และ Last lap เป็นวิดเจ็ตเวลาแยก แสดง `นาที:วินาที.มิลลิวินาที` และ `—` เมื่อไม่มีข้อมูล ใช้เกณฑ์สีเตือนหน่วยมิลลิวินาทีได้ เลย์เอาต์ที่มีวิดเจ็ตใหม่สองแบบนี้ใช้กับแอป Rust; แอป Electron รุ่นเดิมยังไม่รู้จักชนิดวิดเจ็ตใหม่
 
@@ -117,3 +117,32 @@ cargo build --release --locked
 - **คัดลอกสไตล์ → เลือกอีกวิดเจ็ต → วางสไตล์**: คัดลอกสี ฟอนต์ กรอบและการจัดข้อความ โดยเก็บขนาดตัวเลข ตำแหน่ง ชนิดข้อมูล ชื่อ และเกณฑ์เตือนของวิดเจ็ตปลายทาง
 
 ทุกการเปลี่ยนสไตล์ Undo/Redo ได้และบันทึกอัตโนมัติ รวมอยู่ใน JSON ที่ส่งออก เลย์เอาต์เก่านำเข้าได้โดยมีค่าเริ่มต้นให้ สไตล์ใหม่รองรับในแอป Rust; แอป Electron เดิมไม่แสดงการตกแต่งใหม่นี้
+
+### F1 25: 2026 Season Pack และพลังงานไฟฟ้า
+
+เลือก `F1 25 / 2026 · UDP` ในแอป รองรับ UDP format **2025** และ **2026** (packet version 1) ที่ `127.0.0.1:20777` ตั้ง UDP เป็น On, Broadcast เป็น Off และ Your Telemetry เป็น Public
+
+- **ERS battery energy**: พลังงานแบตเตอรี่คงเหลือหน่วย MJ สำหรับวางแผนใช้พลังงานและ Overtake
+- **Electric motor power**: กำลังมอเตอร์ MGU-K หน่วย kW
+- **ERS deployment mode**: NONE / MEDIUM / HOTLAP / BOOST ตาม Car Status; BOOST ไม่ใช่การยืนยันสิทธิ์ใช้ Overtake ของกติกา 2026
+
+อ่านค่าของรถผู้เล่น รองรับ 24 คันใน format 2026 ค่าที่ไม่ถูกต้องหรือหมดอายุแสดง `—` และมีข้อมูล Demo ให้ลองวางวิดเจ็ต เลย์เอาต์ที่มีวิดเจ็ตใหม่ต้องเปิดด้วยแอปรุ่นที่รองรับ
+
+อ้างอิง [สเปก UDP ของ EA สำหรับ 2026 Season Pack](https://forums.ea.com/blog/f1-games-game-info-hub-en/ea-sports%E2%84%A2-f1%C2%AE25-2026-season-pack-udp-specification/12187347) ไม่ได้ยืนยันด้วยแพ็กเก็ตจากเกมจริง
+### วิดเจ็ตจาก F1 25 UDP output ครบ 16 ประเภทแพ็กเก็ต
+
+เพิ่มตัวเลือกข้อมูล 402 รายการจากสเปก **Data Output from F1 25 v3.pdf** และ C++ structures ที่ผู้ใช้แนบ รวมกับ Common 22 แบบเป็น 424 ตัวเลือก ไม่รวมฟิลด์ Header ที่ใช้ระบุตัวแพ็กเก็ต
+
+ในแถบ **Widgets** เลือกหมวดจากเมนู Common / All outputs / Motion / Session / Lap / Event / Participants / Setup / Telemetry / Status / Classification / Lobby / Damage / History / Tyre sets / Motion Ex / Time trial / Lap positions หรือพิมพ์ค้นหาชื่อข้อมูล เช่น `wing damage`, `fuel remaining`, `brake bias`, `wheel slip`, `sector` การค้นหาครอบคลุมทุกหมวด
+
+หลังเพิ่มวิดเจ็ต เลือก **Inspector → ข้อมูลจากเกม** เพื่อเปลี่ยนรถ ล้อ รอบ หรือรายการในอาร์เรย์:
+
+- Car ใช้รถผู้เล่นโดยอัตโนมัติ เอาเครื่องหมาย “รถผู้เล่น” ออกเพื่อเลือกหมายเลขรายการรถ (เป็นลำดับใน UDP ไม่ใช่อันดับการแข่งขัน)
+- ล้อเรียงตามสเปก: #1 RL, #2 RR, #3 FL, #4 FR
+- ประวัติรอบ ชุดยาง พยากรณ์อากาศ และข้อมูลที่มีหลายรายการ เลือก #1 เป็นต้นไป แต่ละวิดเจ็ตแสดงหนึ่งค่าจากรายการที่เลือก เพิ่มหลายวิดเจ็ตเพื่อเทียบรายการได้
+- ข้อมูล Event ใช้ชนิดเหตุการณ์จริงเพื่ออ่าน union และล้าง payload ของเหตุการณ์เก่าเมื่อมีเหตุการณ์ใหม่ รายการที่ยังไม่ถูกส่งหรืออยู่นอกจำนวนข้อมูลจริงแสดง `—`
+- Participants เก็บได้ 6.5 วินาทีเพื่อครอบคลุมความถี่ส่งทุก 5 วินาที ส่วน Event ล่าสุดและผลจบการแข่งขันเก็บจนเปลี่ยน session; ข้อมูลปกติหมดอายุใน 2.5 วินาที
+
+**ตัวเลือกใหม่ 402 รายการใช้ UDP format 2025 ตามเอกสารที่แนบ** การรองรับ 2026 ก่อนหน้านี้ยังใช้กับวิดเจ็ต Common ที่เกี่ยวข้อง ไม่ควรนำ offsets ของปี 2025 ไปอ่านแพ็กเก็ตปี 2026 โดยตรง หน่วยตัวเลือกใหม่ตรงกับ output เช่น J และ W; Common มีตัวเลือกแปลงเป็น MJ และ kW ให้แล้ว บางรหัสที่สเปกอ้างถึง Appendix จะแสดงเป็นตัวเลขรหัส
+
+ตัวถอดข้อมูลใช้ metadata ที่สร้างจากโครงสร้าง packed little-endian ไม่เรียกใช้โค้ดหรือคำสั่งจากเอกสาร สร้าง metadata ซ้ำได้ด้วย `python scripts/generate-f1-fields.py structures.txt assets/f1-2025-fields.json` (Python ใช้เฉพาะการสร้างไฟล์นี้ แอปจริงยังเป็น Rust)

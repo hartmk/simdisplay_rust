@@ -31,7 +31,9 @@ impl TelemetryState {
     pub fn snapshot(&self, now: u64) -> Data {
         self.fields
             .iter()
-            .filter(|(_, (_, t))| now.saturating_sub(*t) < 2500)
+            .filter(|(key, (_, t))| {
+                crate::f1_output::expiry_ms(key).is_none_or(|ttl| now.saturating_sub(*t) < ttl)
+            })
             .map(|(k, (v, _))| (k.clone(), v.clone()))
             .collect()
     }
@@ -120,5 +122,7 @@ impl Drop for Receiver {
 }
 pub fn demo(t: f64) -> Data {
     let speed = (180. + 108. * (t / 5.).sin()).round();
-    json!({"drsActive":u8::from((t/5.).sin()>0.6),"tractionControl":1,"abs":1,"speed":speed,"gear":((speed/42.).floor()+1.).clamp(2.,8.),"rpm":(8000.+3400.*((t*1.3).sin()+1.)/2.).round(),"maxRpm":12500,"lapTime":(t*1000.)%93420.,"lastLap":93420,"bestLap":91874,"tyres":[88.+3.*(t/8.).sin(),90.+2.*(t/7.).sin(),86.+2.*(t/9.).sin(),87.+3.*(t/7.).sin()],"brakeTemps":[129.+20.*(t/5.).sin(),128.+18.*(t/5.).sin(),76.+10.*(t/5.).sin(),76.+9.*(t/5.).sin()],"tyrePressures":[25.1,24.9,24.5,24.4],"tyreWear":[0,0,0,0],"tyreCompound":"Dry compound","fuel":(42.8-t*0.003).max(0.),"fuelUnit":"L","position":4,"lap":12.+(t/93.42).floor(),"throttle":(65.+35.*(t/5.).sin()).round(),"brake":(-(t/5.).sin()).max(0.)*75.,"sessionTime":(2400.-t).max(0.)}).as_object().unwrap().clone()
+    let mut data = crate::f1_output::demo().clone();
+    data.extend(json!({"ersEnergy":2.4+1.2*(t/8.).sin(),"electricPower":175.+175.*(t/5.).sin(),"ersDeployMode":if (t/5.).sin()>0.6 {3} else {1},"drsActive":u8::from((t/5.).sin()>0.6),"tractionControl":1,"abs":1,"speed":speed,"gear":((speed/42.).floor()+1.).clamp(2.,8.),"rpm":(8000.+3400.*((t*1.3).sin()+1.)/2.).round(),"maxRpm":12500,"lapTime":(t*1000.)%93420.,"lastLap":93420,"bestLap":91874,"tyres":[88.+3.*(t/8.).sin(),90.+2.*(t/7.).sin(),86.+2.*(t/9.).sin(),87.+3.*(t/7.).sin()],"brakeTemps":[129.+20.*(t/5.).sin(),128.+18.*(t/5.).sin(),76.+10.*(t/5.).sin(),76.+9.*(t/5.).sin()],"tyrePressures":[25.1,24.9,24.5,24.4],"tyreWear":[0,0,0,0],"tyreCompound":"Dry compound","fuel":(42.8-t*0.003).max(0.),"fuelUnit":"L","position":4,"lap":12.+(t/93.42).floor(),"throttle":(65.+35.*(t/5.).sin()).round(),"brake":(-(t/5.).sin()).max(0.)*75.,"sessionTime":(2400.-t).max(0.)}).as_object().unwrap().clone());
+    data
 }

@@ -35,6 +35,40 @@ fn pointer(p: Pos2, pressed: bool) -> Event {
     }
 }
 #[test]
+fn search_reaches_output_fields_from_common_category_and_adds_one() {
+    let t = tempfile::tempdir().unwrap();
+    let ctx = egui::Context::default();
+    let mut app = DisplayApp::new(&ctx, t.path().join("state.json"));
+    frame(&mut app, &ctx, vec![]);
+    let output = frame(&mut app, &ctx, vec![]);
+    let search = text_pos(&output, "ค้นหาวิดเจ็ตทุกหมวด");
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(search), pointer(search, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(search, false)]);
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::Text("front left wing damage".into())],
+    );
+    let output = frame(&mut app, &ctx, vec![]);
+    let button = text_pos(&output, "Damage · Front Left Wing Damage");
+    let before = app.editor.layout.widgets.len();
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(button), pointer(button, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(button, false)]);
+    assert_eq!(app.editor.layout.widgets.len(), before + 1);
+    assert_eq!(
+        app.editor.selected_mut().unwrap().kind,
+        "f1.carDamage.carDamageData.frontLeftWingDamage"
+    );
+}
+#[test]
 fn clicking_library_adds_widget_and_drag_accumulates_across_frames() {
     let t = tempfile::tempdir().unwrap();
     let ctx = egui::Context::default();
@@ -53,6 +87,10 @@ fn clicking_library_adds_widget_and_drag_accumulates_across_frames() {
             },
         ],
     );
+    // Allow smooth scrolling to settle as the widget catalog grows.
+    for _ in 0..30 {
+        frame(&mut app, &ctx, vec![]);
+    }
     let o = frame(&mut app, &ctx, vec![]);
     let add = text_pos(&o, "Custom text");
     frame(

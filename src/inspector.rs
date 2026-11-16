@@ -23,6 +23,35 @@ pub fn widget_inspector(
     if w.label.encode_utf16().count() > 120 {
         w.label = crate::model::truncate_utf16(&w.label, 120);
     }
+    if let Some(field) = crate::f1_output::field(&w.kind) {
+        ui.separator();
+        ui.label("ข้อมูลจากเกม · F1 25 format 2025");
+        ui.small(&field.description);
+        w.output_indices.resize(field.dimensions.len(), None);
+        for (i, dim) in field.dimensions.iter().enumerate() {
+            ui.label(&dim.label);
+            if dim.player {
+                let mut primary = w.output_indices[i].is_none();
+                if ui.checkbox(&mut primary, "รถผู้เล่น").changed() {
+                    w.output_indices[i] = if primary { None } else { Some(0) };
+                }
+                if primary {
+                    continue;
+                }
+            }
+            let mut number = w.output_indices[i].unwrap_or(0) + 1;
+            if ui
+                .add(
+                    egui::DragValue::new(&mut number)
+                        .range(1..=dim.count)
+                        .prefix("# "),
+                )
+                .changed()
+            {
+                w.output_indices[i] = Some(number - 1);
+            }
+        }
+    }
     ui.separator();
     ui.label("POSITION & SIZE");
     ui.checkbox(&mut w.locked, "ล็อกตำแหน่ง");
@@ -86,7 +115,17 @@ pub fn widget_inspector(
                 ui.selectable_value(&mut w.style.label_position, "bottom".into(), "ล่าง");
             });
         });
-        if ["speed", "fuel", "throttle", "brake"].contains(&w.kind.as_str()) {
+        if [
+            "speed",
+            "fuel",
+            "throttle",
+            "brake",
+            "ersEnergy",
+            "electricPower",
+        ]
+        .contains(&w.kind.as_str())
+            || crate::f1_output::field(&w.kind).is_some_and(|f| !f.unit.is_empty())
+        {
             ui.checkbox(&mut w.style.show_unit, "แสดงหน่วย");
             ui.add_enabled_ui(w.style.show_unit, |ui| {
                 ui.add(egui::Slider::new(&mut w.style.unit_size, 6. ..=100.).text("ขนาดหน่วย"));

@@ -1,7 +1,7 @@
 use crate::{
     editor::Editor,
     inspector::{color_edit, widget_inspector},
-    model::{CATALOG, Layout},
+    model::{Layout, catalog},
     monitors::{self, Monitor, Placement},
     storage::{Saver, Store, Workspace, atomic_write},
     telemetry::{self, Data, Receiver},
@@ -36,6 +36,7 @@ pub struct DisplayApp {
     connection_error: String,
     start: Instant,
     search: String,
+    widget_group: String,
     grid: bool,
     preview: bool,
     drag: Option<Drag>,
@@ -101,6 +102,7 @@ impl DisplayApp {
             connection_error: String::new(),
             start: Instant::now(),
             search: String::new(),
+            widget_group: "Common".into(),
             grid: true,
             preview: false,
             drag: None,
@@ -405,7 +407,7 @@ impl DisplayApp {
                     .show_ui(ui, |ui| {
                         for (id, label) in [
                             ("demo", "Demo / ข้อมูลจำลอง"),
-                            ("f1", "F1 25 · UDP"),
+                            ("f1", "F1 25 / 2026 · UDP"),
                             ("ac", "Assetto Corsa · NOT READY"),
                             ("acc", "ACC · NOT READY"),
                             ("lmu", "Le Mans Ultimate · NOT READY"),
@@ -418,7 +420,7 @@ impl DisplayApp {
                     self.set_source(self.source.clone());
                 }
                 if self.source == "f1" {
-                    ui.small("127.0.0.1:20777 · format 2025");
+                    ui.small("127.0.0.1:20777 · format 2025 / 2026");
                     if ui.button("เชื่อมต่อใหม่").clicked() {
                         self.set_source("f1".into());
                     }
@@ -507,7 +509,39 @@ impl DisplayApp {
         });
     }
     fn library_panel(&mut self, ctx: &egui::Context) {
-        egui::SidePanel::left("widgets").exact_width(180.).show(ctx,|ui|{ui.add_space(10.);ui.heading("Widgets");ui.text_edit_singleline(&mut self.search);ui.separator();egui::ScrollArea::vertical().show(ui,|ui|{for(kind,label,_)in CATALOG{if label.to_lowercase().contains(&self.search.to_lowercase())&&ui.add_enabled(self.editor.layout.widgets.len()<100,egui::Button::new(label).min_size(vec2(158.,36.))).clicked(){self.editor.add(kind);}}ui.add_space(15.);ui.small("ลากชื่อเพื่อย้าย\nลากมุมเพื่อปรับขนาด\nลูกศร: 1 px\nShift + ลูกศร: 10 px\nCtrl/Cmd + Z: Undo");});});
+        egui::SidePanel::left("widgets").exact_width(180.).show(ctx, |ui| {
+            ui.add_space(10.);
+            ui.heading("Widgets");
+            ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("ค้นหาวิดเจ็ตทุกหมวด"));
+            egui::ComboBox::from_id_salt("widget-group").selected_text(&self.widget_group).show_ui(ui, |ui| {
+                ui.selectable_value(&mut self.widget_group, "Common".into(), "Common");
+                ui.selectable_value(&mut self.widget_group, "All".into(), "All outputs");
+                for packet in crate::f1_output::packets() {
+                    ui.selectable_value(&mut self.widget_group, packet.group.clone(), &packet.group);
+                }
+            });
+            ui.separator();
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                let search = self.search.trim().to_lowercase();
+                for (kind, label, _) in catalog() {
+                    let field = crate::f1_output::field(kind);
+                    let matches_group = self.widget_group == "All"
+                        || if self.widget_group == "Common" { field.is_none() }
+                           else { label.starts_with(&format!("{} · ", self.widget_group)) };
+                    let searchable = format!("{label} {kind}").to_lowercase();
+                    // Typing searches every category; category selection is a browsing filter.
+                    if (search.is_empty() && matches_group)
+                        || (!search.is_empty() && search.split_whitespace().all(|term| searchable.contains(term))) {
+                        let response = ui.add_enabled(self.editor.layout.widgets.len() < 100,
+                            egui::Button::new(label).min_size(vec2(158., 36.)));
+                        let response = if let Some(field) = field { response.on_hover_text(&field.description) } else { response };
+                        if response.clicked() { self.editor.add(kind); }
+                    }
+                }
+                ui.add_space(15.);
+                ui.small("ลากชื่อเพื่อย้าย\nลากมุมเพื่อปรับขนาด\nลูกศร: 1 px\nShift + ลูกศร: 10 px\nCtrl/Cmd + Z: Undo");
+            });
+        });
     }
     fn inspector(&mut self, ctx: &egui::Context) {
         egui::SidePanel::right("inspector")

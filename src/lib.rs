@@ -2,6 +2,7 @@ pub mod history;
 pub mod model;
 
 pub mod f1;
+pub mod f1_output;
 pub mod telemetry;
 
 pub mod storage;

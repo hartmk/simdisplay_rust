@@ -73,3 +73,24 @@ Built the current widget styling (including rounded RPM lights) for `i686-pc-win
 `file`, PE header parsing, and `llvm-readobj` confirm a PE32 Intel i386 Windows GUI executable. Imports contain Windows system DLLs, without a dynamic MSVC CRT dependency. ZIP CRC, archived EXE equality, README equality and bundled font licenses were checked. ZIP SHA-256: `84492df1c0e6b154a6f82028ffda58d3e7263c4e82df0e03b77c7037a8c079a1`.
 
 Build completed with LNK4099 warnings about unavailable Microsoft CRT debug PDB files. Windows runtime, live telemetry and fullscreen behavior still need verification on a Windows machine.
+
+## ERS widgets and 2026 Season Pack — 2026-11-16
+
+Added ERS battery energy (MJ), MGU-K electric motor power (kW), and ERS deployment mode (NONE/MEDIUM/HOTLAP/BOOST). The source is Car Status; BOOST is a deployment mode, not confirmation of 2026 Overtake eligibility. No battery capacity is assumed to derive a percentage.
+
+Implemented EA's published 2026 structures alongside 2025: 24 cars; 59-byte Car Telemetry and Car Status records; adjusted pressure offset and Session/Lap/Damage packet lengths. Session History retains its existing layout. Reference: https://forums.ea.com/blog/f1-games-game-info-hub-en/ea-sports%E2%84%A2-f1%C2%AE25-2026-season-pack-udp-specification/12187347 (2026 Season Pack Telemetry Output Structures attachment).
+
+Windows release test suite: 43 tests passed, including last-player offsets for both seasons, Joules-to-MJ and Watts-to-kW conversion, invalid values clearing stale data, expiry, 2026 UDP loopback, rendering units/missing values, and layout round-trips. The catalog scrolling UI test now waits for smooth scrolling to settle before selecting its final item.
+
+A three-second local UDP probe received no game packets, so live-game values remain unverified.
+## F1 25 v3 output catalog — 2026-11-16
+
+Read the user's local 31-page Data Output from F1 25 v3.pdf and supplied C++ structures. Generated 402 selectable primitive/text output fields (including indexed arrays) across packet IDs 0–15. Together with 22 Common widgets there are 424 catalog entries. Header routing fields are not offered as widgets. Field metadata is derived data; the generator does not execute the source document.
+
+Checked every packed packet size against the PDF: 1349, 753, 1285, 45, 1284, 1133, 1352, 1239, 1042, 954, 1041, 1460, 231, 273, 101, 1131 bytes. Values use little-endian decoding, signed integer/float support, UTF-8 names, event-union discrimination, actual array counts, and correct participant RGB offsets. Player selection is automatic for car arrays; Inspector can choose other cars and array items, and selection survives layout export/import. Session History and Tyre Sets remain scoped to the primary player.
+
+Common is the default widget category. Category browsing and global word-based search expose the expanded catalog. Each new widget displays one selected scalar or text value, including source units and inline documented enum names; appendix-only IDs remain numeric codes. All output fields have Demo and missing-data rendering. The expanded catalog targets format 2025; existing 2026 Common support remains separate.
+
+Windows checks passed: cargo fmt --check; cargo test --release --locked (51 tests); cargo clippy --release --locked --all-targets -- -D warnings; cargo build --release --locked. Tests cover all packet sizes and truncation, final-car offsets, per-car UTF-8/RGB arrays, event union clearing, multidimensional lap positions and valid counts, session reset and slow/event-driven field retention, every new widget's Demo/missing rendering and JSON round-trip, invalid indices, and UI search/add interaction.
+
+Live-game packets have not yet verified this expanded catalog.

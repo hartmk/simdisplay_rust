@@ -207,12 +207,27 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
     } else {
         &w.kind
     };
-    let value = number(d, key);
+    let output_field = crate::f1_output::field(key);
+    let output_value = output_field.and_then(|field| field.value(d, w));
+    let value = if output_field.is_some() {
+        output_value.and_then(serde_json::Value::as_f64)
+    } else {
+        number(d, key)
+    };
     let base = if w.threshold.is_some_and(|t| value.is_some_and(|n| n >= t)) {
         color(&w.warning_color)
     } else {
         color(&w.color)
     };
+    if let Some(field) = output_field {
+        let unit = if field.unit == "ms" && !field.key.contains("MSPart") {
+            ""
+        } else {
+            &field.unit
+        };
+        value_with_unit(&p, body, w, &field.text(output_value), unit, base, scale);
+        return;
+    }
     match w.kind.as_str() {
         "tyres" => paint_tyres(&p, body, w, d),
         "rpm" | "rpmNumber" => {
@@ -315,6 +330,14 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
         }
         _ => {
             let text = match w.kind.as_str() {
+                "ersDeployMode" => match value {
+                    Some(0.) => "NONE",
+                    Some(1.) => "MEDIUM",
+                    Some(2.) => "HOTLAP",
+                    Some(3.) => "BOOST",
+                    _ => "—",
+                }
+                .into(),
                 "drsActive" => match value {
                     Some(0.) => "OFF",
                     Some(1.) => "ACTIVE",
@@ -344,12 +367,16 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                     .map(|v| format!("{}:{:02}", v.max(0.) as u64 / 60, v.max(0.) as u64 % 60))
                     .unwrap_or("—".into()),
                 "fuel" => numeric(value, 1),
+                "ersEnergy" => numeric(value, 2),
+                "electricPower" => numeric(value, 1),
                 "text" => w.label.clone(),
                 "speed" => numeric(value, 0),
                 _ => numeric(value, 0),
             };
             let unit = match w.kind.as_str() {
                 "speed" => "km/h",
+                "ersEnergy" => "MJ",
+                "electricPower" => "kW",
                 "fuel" => d.get("fuelUnit").and_then(|v| v.as_str()).unwrap_or(""),
                 _ => "",
             };
