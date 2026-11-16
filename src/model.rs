@@ -48,11 +48,78 @@ pub struct Widget {
     pub background_opacity: f64,
     pub font: String,
     pub font_size: f64,
+    #[serde(default)]
+    pub style: WidgetStyle,
     pub threshold: Option<f64>,
     pub warning_color: String,
     pub locked: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rpm_config: Option<RpmConfig>,
+}
+/// Presentation only: telemetry, geometry and warning rules remain independent.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct WidgetStyle {
+    pub radius: f64,
+    pub border_width: f64,
+    pub border_color: String,
+    pub padding: f64,
+    pub show_label: bool,
+    pub show_unit: bool,
+    pub horizontal: String,
+    pub vertical: String,
+    pub label_size: f64,
+    pub label_color: String,
+    pub unit_size: f64,
+    pub unit_color: String,
+    pub label_position: String,
+    pub rpm_shape: String,
+}
+impl Default for WidgetStyle {
+    fn default() -> Self {
+        Self {
+            radius: 5.,
+            border_width: 0.,
+            border_color: "#627582".into(),
+            padding: 4.,
+            show_label: true,
+            show_unit: true,
+            horizontal: "center".into(),
+            vertical: "center".into(),
+            label_size: 14.,
+            label_color: "#97aab5".into(),
+            unit_size: 16.,
+            unit_color: "#a0a0a0".into(),
+            label_position: "top".into(),
+            rpm_shape: "rounded".into(),
+        }
+    }
+}
+impl WidgetStyle {
+    pub fn validate(&self) -> Result<(), String> {
+        for (n, min, max) in [
+            (self.radius, 0., 100.),
+            (self.border_width, 0., 20.),
+            (self.padding, 0., 100.),
+            (self.label_size, 6., 100.),
+            (self.unit_size, 6., 100.),
+        ] {
+            if !n.is_finite() || !(min..=max).contains(&n) {
+                return Err("ขนาดตกแต่งวิดเจ็ตไม่ถูกต้อง".into());
+            }
+        }
+        if ![&self.border_color, &self.label_color, &self.unit_color]
+            .iter()
+            .all(|c| valid_color(c))
+            || !["left", "center", "right"].contains(&self.horizontal.as_str())
+            || !["top", "center", "bottom"].contains(&self.vertical.as_str())
+            || !["top", "bottom"].contains(&self.label_position.as_str())
+            || !["rounded", "square", "led"].contains(&self.rpm_shape.as_str())
+        {
+            return Err("รูปแบบตกแต่งวิดเจ็ตไม่ถูกต้อง".into());
+        }
+        Ok(())
+    }
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -227,6 +294,7 @@ impl Layout {
         validate_size(self.width, self.height)?;
         let mut ids = HashSet::new();
         for w in &self.widgets {
+            w.style.validate()?;
             if !ids.insert(&w.id)
                 || w.id.encode_utf16().count() > 80
                 || w.label.encode_utf16().count() > 120
@@ -288,6 +356,63 @@ pub fn validate_size(w: u32, h: u32) -> Result<(), String> {
     }
 }
 impl Widget {
+    pub fn apply_style_preset(&mut self, preset: &str) {
+        match preset {
+            "wheel" => {
+                self.style = WidgetStyle {
+                    radius: 0.,
+                    border_width: 1.,
+                    border_color: "#81929c".into(),
+                    padding: 3.,
+                    label_size: 24.,
+                    unit_size: 24.,
+                    label_color: "#d4dce0".into(),
+                    rpm_shape: "square".into(),
+                    ..WidgetStyle::default()
+                };
+                self.background = "#080c10".into();
+                self.background_opacity = 100.;
+                self.color = "#f5f7fa".into();
+                self.font = "condensed".into();
+            }
+            "minimal" => {
+                self.style = WidgetStyle {
+                    radius: 0.,
+                    padding: 0.,
+                    show_label: false,
+                    show_unit: false,
+                    ..WidgetStyle::default()
+                };
+                self.background_opacity = 0.;
+                self.color = "#f5f7fa".into();
+                self.font = "mono".into();
+            }
+            "card" => {
+                self.style = WidgetStyle {
+                    radius: 18.,
+                    padding: 16.,
+                    border_width: 1.,
+                    border_color: "#33424e".into(),
+                    show_label: false,
+                    show_unit: false,
+                    ..WidgetStyle::default()
+                };
+                self.background = "#151e27".into();
+                self.background_opacity = 100.;
+                self.color = "#f5f7fa".into();
+                self.font = "mono".into();
+            }
+            _ => {}
+        }
+    }
+    pub fn copy_style_from(&mut self, source: &Widget) {
+        self.style = source.style.clone();
+        self.color = source.color.clone();
+        self.background = source.background.clone();
+        self.background_opacity = source.background_opacity;
+        self.font = source.font.clone();
+    }
+
     pub fn new(kind: &str, l: &Layout) -> Self {
         let (_, label, size) = CATALOG
             .iter()
@@ -306,6 +431,7 @@ impl Widget {
             background_opacity: 100.,
             font: "sans".into(),
             font_size: *size,
+            style: WidgetStyle::default(),
             threshold: None,
             warning_color: "#ff654e".into(),
             locked: false,

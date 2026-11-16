@@ -56,20 +56,86 @@ fn font(w: &Widget, size: f32) -> FontId {
         },
     )
 }
-fn fitted(p: &Painter, r: Rect, text: &str, mut f: FontId, c: Color32) {
+fn fitted(p: &Painter, r: Rect, text: &str, f: FontId, c: Color32) {
+    fitted_aligned(p, r, text, f, c, Align2::CENTER_CENTER);
+}
+fn fitted_aligned(p: &Painter, r: Rect, text: &str, mut f: FontId, c: Color32, align: Align2) {
+    if r.width() <= 0. || r.height() <= 0. {
+        return;
+    }
     let g = p.layout_no_wrap(text.into(), f.clone(), c);
     let factor = (r.width() / g.size().x.max(1.))
         .min(r.height() / g.size().y.max(1.))
         .min(1.);
     f.size *= factor;
-    p.text(r.center(), Align2::CENTER_CENTER, text, f, c);
+    let at = pos2(
+        match align.x() {
+            egui::Align::Min => r.left(),
+            egui::Align::Max => r.right(),
+            _ => r.center().x,
+        },
+        match align.y() {
+            egui::Align::Min => r.top(),
+            egui::Align::Max => r.bottom(),
+            _ => r.center().y,
+        },
+    );
+    p.text(at, align, text, f, c);
+}
+fn alignment(w: &Widget) -> Align2 {
+    Align2([
+        match w.style.horizontal.as_str() {
+            "left" => egui::Align::Min,
+            "right" => egui::Align::Max,
+            _ => egui::Align::Center,
+        },
+        match w.style.vertical.as_str() {
+            "top" => egui::Align::Min,
+            "bottom" => egui::Align::Max,
+            _ => egui::Align::Center,
+        },
+    ])
+}
+fn value_with_unit(
+    p: &Painter,
+    r: Rect,
+    w: &Widget,
+    text: &str,
+    unit: &str,
+    c: Color32,
+    scale: f32,
+) {
+    let mut value_rect = r;
+    let unit_height = ((w.style.unit_size as f32 + 2.) * scale).min(r.height() * 0.3);
+    if w.style.show_unit && !unit.is_empty() {
+        value_rect.max.y -= unit_height;
+    }
+    fitted_aligned(
+        p,
+        value_rect,
+        text,
+        font(w, w.font_size as f32 * scale),
+        c,
+        alignment(w),
+    );
+    if w.style.show_unit && !unit.is_empty() {
+        let unit_rect = Rect::from_min_max(pos2(r.left(), value_rect.bottom()), r.max);
+        fitted_aligned(
+            p,
+            unit_rect,
+            unit,
+            font(w, w.style.unit_size as f32 * scale),
+            color(&w.style.unit_color),
+            Align2([alignment(w).x(), egui::Align::Max]),
+        );
+    }
 }
 pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
     let p = p.with_clip_rect(r.intersect(p.clip_rect()));
     let bg = color(&w.background);
     p.rect_filled(
         r,
-        5. * scale,
+        (w.style.radius as f32 * scale).min(r.width().min(r.height()) / 2.),
         Color32::from_rgba_unmultiplied(
             bg.r(),
             bg.g(),
@@ -77,22 +143,63 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
             (w.background_opacity * 2.55).round() as u8,
         ),
     );
-    let margin = (4. * scale).max(1.);
-    let title_h = (22. * scale).max(8.).min(r.height() * 0.25);
-    let title = Rect::from_min_size(
-        r.min + vec2(margin, 0.),
-        vec2((r.width() - margin * 2.).max(1.), title_h),
+    if w.style.border_width > 0. {
+        p.rect_stroke(
+            r,
+            (w.style.radius as f32 * scale).min(r.width().min(r.height()) / 2.),
+            Stroke::new(
+                w.style.border_width as f32 * scale,
+                color(&w.style.border_color),
+            ),
+            StrokeKind::Inside,
+        );
+    }
+    let margin = ((w.style.padding + w.style.border_width) as f32 * scale)
+        .min((r.width().min(r.height()) * 0.5 - 1.).max(0.));
+    let inner = r.shrink(margin);
+    let title_h = if w.style.show_label {
+        ((w.style.label_size as f32 + 8.) * scale).min(inner.height() * 0.25)
+    } else {
+        0.
+    };
+    let bottom_label = w.style.label_position == "bottom";
+    let title = Rect::from_min_max(
+        pos2(
+            inner.left(),
+            if bottom_label {
+                inner.bottom() - title_h
+            } else {
+                inner.top()
+            },
+        ),
+        pos2(
+            inner.right(),
+            if bottom_label {
+                inner.bottom()
+            } else {
+                inner.top() + title_h
+            },
+        ),
     );
-    p.text(
-        title.left_center(),
-        Align2::LEFT_CENTER,
-        &w.label,
-        FontId::proportional((14. * scale).max(6.)),
-        Color32::from_rgb(151, 170, 181),
-    );
+    if w.style.show_label {
+        fitted_aligned(
+            &p,
+            title,
+            &w.label,
+            font(w, w.style.label_size as f32 * scale),
+            color(&w.style.label_color),
+            Align2::LEFT_CENTER,
+        );
+    }
     let body = Rect::from_min_max(
-        pos2(r.left() + margin, r.top() + title_h),
-        r.max - vec2(margin, margin),
+        pos2(
+            inner.left(),
+            inner.top() + if bottom_label { 0. } else { title_h },
+        ),
+        pos2(
+            inner.right(),
+            inner.bottom() - if bottom_label { title_h } else { 0. },
+        ),
     );
     // Keep the legacy `lastLap` widget as the combined three-row display.
     let key = if w.kind == "lastLapTime" {
@@ -115,22 +222,32 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                 let gap = (5. * scale).min(body.width() / 60.);
                 let width = (body.width() - gap * 23.) / 24.;
                 for (i, c) in state.bars.iter().enumerate() {
-                    p.rect_filled(
-                        Rect::from_min_size(
-                            body.min + vec2(i as f32 * (width + gap), 0.),
-                            vec2(width, height),
-                        ),
-                        2. * scale,
-                        color(c),
+                    let cell = Rect::from_min_size(
+                        body.min + vec2(i as f32 * (width + gap), 0.),
+                        vec2(width, height),
                     );
+                    if w.style.rpm_shape == "led" {
+                        p.circle_filled(cell.center(), width.min(height) * 0.5, color(c));
+                    } else {
+                        p.rect_filled(
+                            cell,
+                            if w.style.rpm_shape == "square" {
+                                0.
+                            } else {
+                                width.min(height) * 0.18
+                            },
+                            color(c),
+                        );
+                    }
                 }
             } else {
-                fitted(
+                fitted_aligned(
                     &p,
                     body,
                     &numeric(number(d, "rpm"), 0),
                     font(w, w.font_size as f32 * scale),
                     color(&state.color),
+                    alignment(w),
                 );
             }
         }
@@ -165,19 +282,21 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                 } else {
                     base
                 };
-                fitted(
+                fitted_aligned(
                     &p,
                     value_rect,
                     &format_time(n),
                     font(w, w.font_size as f32 * scale * 0.65),
                     c,
+                    alignment(w),
                 );
             }
         }
         "throttle" | "brake" => {
+            let bar_h = (10. * scale).min(body.height() * 0.15);
             let bar = Rect::from_min_size(
-                pos2(body.left(), body.bottom() - 12. * scale),
-                vec2(body.width(), 10. * scale),
+                pos2(body.left(), body.bottom() - bar_h),
+                vec2(body.width(), bar_h),
             );
             p.rect_filled(bar, 2., Color32::from_gray(40));
             if let Some(n) = value {
@@ -191,14 +310,8 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                 );
             }
             let mut text_rect = body;
-            text_rect.max.y -= 14. * scale;
-            fitted(
-                &p,
-                text_rect,
-                &format!("{} %", numeric(value, 0)),
-                font(w, w.font_size as f32 * scale),
-                base,
-            );
+            text_rect.max.y -= (bar_h + 4. * scale).min(body.height() * 0.25);
+            value_with_unit(&p, text_rect, w, &numeric(value, 0), "%", base, scale);
         }
         _ => {
             let text = match w.kind.as_str() {
@@ -230,36 +343,17 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                 "sessionTime" => value
                     .map(|v| format!("{}:{:02}", v.max(0.) as u64 / 60, v.max(0.) as u64 % 60))
                     .unwrap_or("—".into()),
-                "fuel" => format!(
-                    "{} {}",
-                    numeric(value, 1),
-                    d.get("fuelUnit").and_then(|v| v.as_str()).unwrap_or("")
-                ),
+                "fuel" => numeric(value, 1),
                 "text" => w.label.clone(),
                 "speed" => numeric(value, 0),
                 _ => numeric(value, 0),
             };
-            let mut text_rect = body;
-            if w.kind == "speed" {
-                // Keep the unit outside the number's fitted area, even at large font sizes.
-                text_rect.max.y -= 18. * scale;
-            }
-            fitted(
-                &p,
-                text_rect,
-                &text,
-                font(w, w.font_size as f32 * scale),
-                base,
-            );
-            if w.kind == "speed" {
-                p.text(
-                    body.center_bottom(),
-                    Align2::CENTER_BOTTOM,
-                    "km/h",
-                    FontId::proportional(16. * scale),
-                    Color32::GRAY,
-                );
-            }
+            let unit = match w.kind.as_str() {
+                "speed" => "km/h",
+                "fuel" => d.get("fuelUnit").and_then(|v| v.as_str()).unwrap_or(""),
+                _ => "",
+            };
+            value_with_unit(&p, body, w, &text, unit, base, scale);
         }
     }
 }

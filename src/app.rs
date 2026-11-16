@@ -41,6 +41,7 @@ pub struct DisplayApp {
     drag: Option<Drag>,
     resize_handle_focus: bool,
     rpm_error: String,
+    style_clipboard: Option<crate::model::Widget>,
     canvas_width: u32,
     canvas_height: u32,
     last_canvas_size: (u32, u32),
@@ -105,6 +106,7 @@ impl DisplayApp {
             drag: None,
             resize_handle_focus: false,
             rpm_error: String::new(),
+            style_clipboard: None,
             monitors,
             monitor_id,
             last_monitors: Instant::now(),
@@ -529,6 +531,22 @@ impl DisplayApp {
                             }
                             if ui.button("ชั้นบน ↑").clicked() {
                                 self.editor.layer(true);
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            if ui.button("คัดลอกสไตล์").clicked() {
+                                self.style_clipboard = self.editor.selected_mut().cloned();
+                            }
+                            if ui
+                                .add_enabled(
+                                    self.style_clipboard.is_some(),
+                                    egui::Button::new("วางสไตล์"),
+                                )
+                                .on_hover_text("คัดลอกสี ฟอนต์ และการตกแต่ง โดยคงขนาดตัวเลขและข้อมูลเดิม")
+                                .clicked()
+                                && let Some(source) = self.style_clipboard.clone()
+                            {
+                                self.editor.paste_style(&source);
                             }
                         });
                         let (width, height) = (self.editor.layout.width, self.editor.layout.height);

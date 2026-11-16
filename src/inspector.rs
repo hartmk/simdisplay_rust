@@ -43,6 +43,21 @@ pub fn widget_inspector(
     w.constrain(width, height);
     ui.separator();
     ui.label("APPEARANCE");
+    ui.horizontal_wrapped(|ui| {
+        for (id, label) in [
+            ("wheel", "Wheel LCD"),
+            ("minimal", "Minimal"),
+            ("card", "Card"),
+        ] {
+            if ui
+                .button(label)
+                .on_hover_text("ใช้สไตล์กับวิดเจ็ตนี้ · Undo ได้")
+                .clicked()
+            {
+                w.apply_style_preset(id);
+            }
+        }
+    });
     color_edit(ui, "ตัวอักษร", &mut w.color);
     color_edit(ui, "พื้นหลัง", &mut w.background);
     ui.add(egui::Slider::new(&mut w.background_opacity, 0. ..=100.).text("Opacity %"));
@@ -54,6 +69,59 @@ pub fn widget_inspector(
             }
         });
     ui.add(egui::Slider::new(&mut w.font_size, 16. ..=300.).text("Font size"));
+    ui.collapsing("กรอบและระยะห่าง", |ui| {
+        ui.add(egui::Slider::new(&mut w.style.radius, 0. ..=100.).text("มุมโค้ง"));
+        ui.add(egui::Slider::new(&mut w.style.border_width, 0. ..=20.).text("ขอบ"));
+        color_edit(ui, "สีขอบ", &mut w.style.border_color);
+        ui.add(egui::Slider::new(&mut w.style.padding, 0. ..=100.).text("ระยะด้านใน"));
+    });
+    ui.collapsing("หัวข้อและหน่วย", |ui| {
+        ui.checkbox(&mut w.style.show_label, "แสดงหัวข้อ");
+        ui.add_enabled_ui(w.style.show_label, |ui| {
+            ui.add(egui::Slider::new(&mut w.style.label_size, 6. ..=100.).text("ขนาดหัวข้อ"));
+            color_edit(ui, "สีหัวข้อ", &mut w.style.label_color);
+            ui.horizontal(|ui| {
+                ui.label("ตำแหน่งหัวข้อ");
+                ui.selectable_value(&mut w.style.label_position, "top".into(), "บน");
+                ui.selectable_value(&mut w.style.label_position, "bottom".into(), "ล่าง");
+            });
+        });
+        if ["speed", "fuel", "throttle", "brake"].contains(&w.kind.as_str()) {
+            ui.checkbox(&mut w.style.show_unit, "แสดงหน่วย");
+            ui.add_enabled_ui(w.style.show_unit, |ui| {
+                ui.add(egui::Slider::new(&mut w.style.unit_size, 6. ..=100.).text("ขนาดหน่วย"));
+                color_edit(ui, "สีหน่วย", &mut w.style.unit_color);
+            });
+        }
+    });
+    if !["tyres", "rpm"].contains(&w.kind.as_str()) {
+        ui.collapsing(
+            "จัดตำแหน่งตัวเลข / ข้อความ",
+            |ui| {
+                ui.horizontal(|ui| {
+                    for (id, name) in [("left", "ซ้าย"), ("center", "กลาง"), ("right", "ขวา")]
+                    {
+                        ui.selectable_value(&mut w.style.horizontal, id.into(), name);
+                    }
+                });
+                ui.horizontal(|ui| {
+                    for (id, name) in [("top", "บน"), ("center", "กลาง"), ("bottom", "ล่าง")]
+                    {
+                        ui.selectable_value(&mut w.style.vertical, id.into(), name);
+                    }
+                });
+            },
+        );
+    }
+    if w.kind == "rpm" {
+        ui.horizontal(|ui| {
+            ui.label("ไฟ RPM");
+            for (id, name) in [("square", "เหลี่ยม"), ("rounded", "มน"), ("led", "LED")]
+            {
+                ui.selectable_value(&mut w.style.rpm_shape, id.into(), name);
+            }
+        });
+    }
     let mut enabled = w.threshold.is_some();
     if ui.checkbox(&mut enabled, "เปลี่ยนสีเมื่อค่า ≥ เกณฑ์").changed()
     {

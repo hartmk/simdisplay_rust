@@ -49,6 +49,18 @@ fn main() -> eframe::Result<()> {
                     .resize(dimensions[0], dimensions[1])
                     .expect("valid canvas size");
             }
+            if let Ok(preset) = std::env::var("SIMDISPLAY_CAPTURE_STYLE") {
+                for w in &mut app.editor.layout.widgets {
+                    w.apply_style_preset(&preset);
+                }
+                app.editor.selected = app
+                    .editor
+                    .layout
+                    .widgets
+                    .iter()
+                    .find(|w| w.kind == "speed")
+                    .map(|w| w.id.clone());
+            }
             Ok(Box::new(Capture {
                 app,
                 frames: 0,

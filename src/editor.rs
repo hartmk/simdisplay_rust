@@ -43,6 +43,13 @@ impl Editor {
         self.selected = Some(w.id.clone());
         self.layout.widgets.push(w);
     }
+    pub fn paste_style(&mut self, source: &Widget) {
+        self.begin_edit();
+        if let Some(w) = self.selected_mut() {
+            w.copy_style_from(source);
+        }
+        self.end_edit();
+    }
     pub fn duplicate(&mut self) {
         self.end_edit();
         if self.layout.widgets.len() >= 100 {

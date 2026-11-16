@@ -211,3 +211,34 @@ fn canvas_controls_follow_restored_layout_size() {
     frame(&mut app, &ctx, vec![]);
     text_pos(&frame(&mut app, &ctx, vec![]), "1920 × 1080");
 }
+
+#[test]
+fn style_preset_and_clipboard_buttons_update_selection_and_undo() {
+    let t = tempfile::tempdir().unwrap();
+    let ctx = egui::Context::default();
+    let mut app = DisplayApp::new(&ctx, t.path().join("state.json"));
+    app.editor.selected = Some(app.editor.layout.widgets[1].id.clone());
+    let original = app.editor.layout.clone();
+    let click = |app: &mut DisplayApp, label: &str| {
+        frame(app, &ctx, vec![]);
+        let o = frame(app, &ctx, vec![]);
+        let p = text_pos(&o, label);
+        frame(app, &ctx, vec![Event::PointerMoved(p), pointer(p, true)]);
+        frame(app, &ctx, vec![pointer(p, false)]);
+    };
+    click(&mut app, "Wheel LCD");
+    assert_eq!(app.editor.layout.widgets[1].style.radius, 0.);
+    assert_eq!(app.editor.layout.widgets[1].font, "condensed");
+    app.editor.undo();
+    assert_eq!(app.editor.layout, original);
+    app.editor.redo();
+    click(&mut app, "คัดลอกสไตล์");
+    app.editor.selected = Some(app.editor.layout.widgets[2].id.clone());
+    click(&mut app, "วางสไตล์");
+    assert_eq!(
+        app.editor.layout.widgets[2].style,
+        app.editor.layout.widgets[1].style
+    );
+    app.editor.undo();
+    assert_eq!(app.editor.layout.widgets[2], original.widgets[2]);
+}
