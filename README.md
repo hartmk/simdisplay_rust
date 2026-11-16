@@ -27,7 +27,16 @@ rustup target add x86_64-pc-windows-msvc
 sh scripts/package-windows.sh
 ```
 
-สคริปต์สร้าง Windows x64 ด้วย MSVC target และ static C runtime แล้วแพ็ก `.exe`, คู่มือ และใบอนุญาตฟอนต์เป็น ZIP การ cross-build สำเร็จไม่ใช่การยืนยันว่าได้ทดสอบ runtime บน Windows แล้ว
+สำหรับ Windows x86 (32 บิต):
+
+```sh
+rustup target add i686-pc-windows-msvc
+sh scripts/package-windows.sh x86
+```
+
+แตก `release/Apex-Display-Rust-Windows-x86.zip` แล้วเปิด `simdisplay.exe` (portable ไม่ต้องติดตั้ง Rust หรือ Node.js) ไฟล์แยกจากรุ่น x64
+
+สคริปต์สร้าง Windows x64 โดยค่าเริ่มต้น หรือ x86 เมื่อระบุอาร์กิวเมนต์ ด้วย MSVC target และ static C runtime แล้วแพ็ก `.exe`, คู่มือ และใบอนุญาตฟอนต์เป็น ZIP การ cross-build สำเร็จไม่ใช่การยืนยันว่าได้ทดสอบ runtime บน Windows แล้ว
 
 ## การใช้งาน
 

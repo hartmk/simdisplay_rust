@@ -65,3 +65,11 @@ On 2026-11-11, `scripts/package-windows.sh` successfully built the current Rust 
 `file` and `llvm-readobj` confirmed a PE32+ AMD64 Windows GUI executable. Import inspection found Windows system DLLs and no dynamic MSVC CRT dependency. The linker reported LNK4099 warnings for unavailable Microsoft CRT debug PDB files; the release build completed successfully. ZIP CRC checks and equality of the archived executable with the build output passed. Windows runtime, actual game input, and Windows fullscreen behavior have not been tested on a Windows machine.
 
 Windows icon rebuild: user-supplied Neon Sim Racing Dashboard artwork center-cropped to a square for the window icon and a seven-size ICO. The rebuilt EXE contains ICON and GROUP_ICON resources, and all seven image payloads match the ICO. Repackaged ZIP passed CRC and executable/README equality checks. Windows Explorer/taskbar appearance still requires a Windows runtime check.
+
+## Windows x86 build — 2026-11-16
+
+Built the current widget styling (including rounded RPM lights) for `i686-pc-windows-msvc` with `scripts/package-windows.sh x86`, cargo-xwin 0.23.1, release/locked dependencies, and static CRT. Outputs: `release/windows-x86/simdisplay.exe` and `release/Apex-Display-Rust-Windows-x86.zip`.
+
+`file`, PE header parsing, and `llvm-readobj` confirm a PE32 Intel i386 Windows GUI executable. Imports contain Windows system DLLs, without a dynamic MSVC CRT dependency. ZIP CRC, archived EXE equality, README equality and bundled font licenses were checked. ZIP SHA-256: `84492df1c0e6b154a6f82028ffda58d3e7263c4e82df0e03b77c7037a8c079a1`.
+
+Build completed with LNK4099 warnings about unavailable Microsoft CRT debug PDB files. Windows runtime, live telemetry and fullscreen behavior still need verification on a Windows machine.
