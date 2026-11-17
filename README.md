@@ -6,6 +6,30 @@
 
 ## เปิดใช้งาน
 
+ดาวน์โหลดไฟล์พร้อมใช้จาก [GitHub Releases](https://github.com/hartmk/simdisplay_rust/releases) หรือ [รุ่นล่าสุด](https://github.com/hartmk/simdisplay_rust/releases/latest) แล้วเลือก ZIP ให้ตรงกับเครื่อง:
+
+- `Apex-Display-Rust-Windows-x64.zip` — Windows 64 บิต
+- `Apex-Display-Rust-Windows-x86.zip` — Windows 32 บิต
+- `Apex-Display-Rust-macOS-arm64.zip` — Mac Apple Silicon
+- `Apex-Display-Rust-macOS-x64.zip` — Mac Intel
+
+ไฟล์จะปรากฏในส่วน **Assets** เมื่อ workflow ของ tag แรกทำงานสำเร็จ แตก ZIP แล้วเปิด `simdisplay.exe` หรือ `Apex Display Rust.app` ได้โดยไม่ต้องติดตั้ง Rust มี `SHA256SUMS.txt` สำหรับตรวจสอบไฟล์ macOS ใช้ ad-hoc signing ยังไม่มี Developer ID/notarization
+
+### ออกรุ่นบน GitHub
+
+Workflow [Rust desktop builds](https://github.com/hartmk/simdisplay_rust/actions/workflows/release.yml) ทดสอบและ build ทั้งสี่แบบ เมื่อ push tag ที่ขึ้นต้นด้วย `v` จะสร้าง Release และแนบ ZIP หลังทุก build สำเร็จ ใช้ `GITHUB_TOKEN` ของ Actions โดยไม่ต้องตั้ง secret เพิ่ม
+
+หลัง commit และ push โค้ดพร้อม workflow แล้ว ออกรุ่นด้วย tag ใหม่ เช่น:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+อัปเดตเวอร์ชันใน `Cargo.toml`, `Cargo.lock` และ `packaging/Info.plist` ให้ตรงกับรุ่นก่อนสร้าง tag ถ้าใช้ tag เช่น `v0.2.0-beta.1` จะสร้างเป็น prerelease การกด **Run workflow** ใช้ทดสอบ build และดาวน์โหลดจาก Actions artifacts โดยไม่สร้าง Release
+
+### Build ในเครื่อง
+
 ติดตั้ง Rust stable ผ่าน [rustup](https://rustup.rs/) แล้วรันในโฟลเดอร์นี้:
 
 ```sh
