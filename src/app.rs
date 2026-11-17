@@ -374,6 +374,30 @@ impl DisplayApp {
                     self.editor.undo();
                 }
             }
+            let copy_requested = (command && ctx.input(|i| i.key_pressed(Key::C)))
+                || ctx.input(|i| {
+                    i.events
+                        .iter()
+                        .any(|event| matches!(event, egui::Event::Copy))
+                });
+            if copy_requested && let Some(text) = self.editor.copy() {
+                ctx.copy_text(text);
+            }
+            // eframe turns the platform paste shortcut into a Paste event with clipboard text.
+            for text in ctx.input(|i| {
+                i.events
+                    .iter()
+                    .filter_map(|event| {
+                        if let egui::Event::Paste(text) = event {
+                            Some(text.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>()
+            }) {
+                self.editor.paste_text(&text);
+            }
             if command && ctx.input(|i| i.key_pressed(Key::D)) {
                 self.editor.duplicate();
             }
@@ -775,6 +799,7 @@ impl DisplayApp {
                     self.editor.selected = Some(w.id.clone());
                     ui.ctx().memory_mut(|m| m.stop_text_input());
                 }
+                let mut interaction = click;
                 let title = Rect::from_min_size(
                     r.min,
                     vec2(r.width(), (30. * scale).max(14.).min(r.height())),
@@ -790,6 +815,7 @@ impl DisplayApp {
                             Sense::click_and_drag()
                         },
                     );
+                    interaction = interaction.union(resp.clone());
                     if resize && selected {
                         p.rect_filled(handle, 2., Color32::from_rgb(196, 245, 98));
                     }
@@ -841,6 +867,58 @@ impl DisplayApp {
                         self.editor.end_edit();
                     }
                 }
+                if interaction.secondary_clicked() {
+                    self.editor.end_edit();
+                    self.editor.selected = Some(w.id.clone());
+                    self.resize_handle_focus = false;
+                    ui.ctx().memory_mut(|m| m.stop_text_input());
+                }
+                interaction.context_menu(|ui| {
+                    if ui
+                        .button("คัดลอก")
+                        .on_hover_text("วางด้วย Ctrl/Cmd + V")
+                        .clicked()
+                    {
+                        self.editor.selected = Some(w.id.clone());
+                        if let Some(text) = self.editor.copy() {
+                            ui.ctx().copy_text(text);
+                        }
+                        ui.close();
+                    }
+                    if ui.button("ลบ").clicked() {
+                        self.editor.selected = Some(w.id.clone());
+                        self.editor.delete();
+                        ui.close();
+                    }
+                    let index = widgets.iter().position(|item| item.id == w.id).unwrap();
+                    if ui
+                        .add_enabled(index + 1 < widgets.len(), egui::Button::new("ขึ้นบน"))
+                        .clicked()
+                    {
+                        self.editor.selected = Some(w.id.clone());
+                        self.editor.layer(true);
+                        ui.close();
+                    }
+                    if ui
+                        .add_enabled(index > 0, egui::Button::new("ลงล่าง"))
+                        .clicked()
+                    {
+                        self.editor.selected = Some(w.id.clone());
+                        self.editor.layer(false);
+                        ui.close();
+                    }
+                    if ui
+                        .add_enabled(
+                            self.editor.layout.widgets.len() < 100,
+                            egui::Button::new("ทำสำเนา"),
+                        )
+                        .clicked()
+                    {
+                        self.editor.selected = Some(w.id.clone());
+                        self.editor.duplicate();
+                        ui.close();
+                    }
+                });
             }
         }
         if self.presenting {

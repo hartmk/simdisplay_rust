@@ -83,3 +83,48 @@ fn keyboard_resize_respects_lock_and_canvas() {
     e.nudge_size(10., 10.);
     assert_eq!(e.layout, before);
 }
+
+#[test]
+fn copied_widget_survives_deleting_original_and_paste_is_undoable() {
+    let mut e = Editor::new(Layout::default());
+    e.selected = Some(e.layout.widgets[0].id.clone());
+    e.selected_mut().unwrap().font = "system:Example-Regular".into();
+    let original = e.selected_mut().unwrap().clone();
+    let before_copy = e.layout.clone();
+    assert!(e.copy().is_some());
+    assert_eq!(e.layout, before_copy);
+    assert!(!e.history.can_undo());
+    e.delete();
+    let before_paste = e.layout.clone();
+    e.paste();
+    let pasted = e.selected_mut().unwrap();
+    assert_ne!(pasted.id, original.id);
+    assert_eq!(pasted.font, original.font);
+    assert_eq!(pasted.kind, original.kind);
+    assert_eq!(pasted.style, original.style);
+    e.layout.validate().unwrap();
+    let after = e.layout.clone();
+    e.undo();
+    assert_eq!(e.layout, before_paste);
+    e.redo();
+    assert_eq!(e.layout, after);
+}
+
+#[test]
+fn layers_move_one_step_preserve_selection_and_obey_edges() {
+    let mut e = Editor::new(Layout::default());
+    let original = e.layout.clone();
+    let id = e.layout.widgets[0].id.clone();
+    e.selected = Some(id.clone());
+    e.layer(false);
+    assert_eq!(e.layout, original);
+    assert!(!e.history.can_undo());
+    e.layer(true);
+    assert_eq!(e.layout.widgets[1].id, id);
+    assert_eq!(e.selected.as_ref(), Some(&id));
+    e.undo();
+    assert_eq!(e.layout, original);
+    e.redo();
+    e.layer(false);
+    assert_eq!(e.layout, original);
+}

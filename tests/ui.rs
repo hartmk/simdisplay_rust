@@ -75,10 +75,11 @@ fn assetto_corsa_source_can_be_selected_and_switched_back_to_demo() {
         .shapes
         .iter()
         .find_map(|shape| {
-            if let egui::Shape::Text(text) = &shape.shape {
-                if text.galley.text() == "isInPitLane" && text.pos.y > search.y + 25. {
-                    return Some(text.pos + text.galley.size() / 2.);
-                }
+            if let egui::Shape::Text(text) = &shape.shape
+                && text.galley.text() == "isInPitLane"
+                && text.pos.y > search.y + 25.
+            {
+                return Some(text.pos + text.galley.size() / 2.);
             }
             None
         })
@@ -398,4 +399,123 @@ fn style_preset_and_clipboard_buttons_update_selection_and_undo() {
     );
     app.editor.undo();
     assert_eq!(app.editor.layout.widgets[2], original.widgets[2]);
+}
+
+#[test]
+fn widget_right_click_selects_target_and_offers_edit_actions() {
+    let t = tempfile::tempdir().unwrap();
+    let ctx = egui::Context::default();
+    let mut app = DisplayApp::new(&ctx, t.path().join("state.json"));
+    app.editor.layout.widgets.truncate(1);
+    app.editor.layout.widgets[0].label = "Context target".into();
+    let id = app.editor.layout.widgets[0].id.clone();
+    frame(&mut app, &ctx, vec![]);
+    let output = frame(&mut app, &ctx, vec![]);
+    let pos = text_pos(&output, "Context target");
+    let right = |pressed| Event::PointerButton {
+        pos,
+        button: PointerButton::Secondary,
+        pressed,
+        modifiers: Default::default(),
+    };
+    frame(&mut app, &ctx, vec![Event::PointerMoved(pos), right(true)]);
+    frame(&mut app, &ctx, vec![right(false)]);
+    let output = frame(&mut app, &ctx, vec![]);
+    assert_eq!(app.editor.selected.as_ref(), Some(&id));
+    for label in ["คัดลอก", "ลบ", "ขึ้นบน", "ลงล่าง", "ทำสำเนา"]
+    {
+        text_pos(&output, label);
+    }
+    let copy = text_pos(&output, "คัดลอก");
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::PointerMoved(copy), pointer(copy, true)],
+    );
+    frame(&mut app, &ctx, vec![pointer(copy, false)]);
+    assert_eq!(app.editor.layout.widgets.len(), 1);
+    frame(
+        &mut app,
+        &ctx,
+        vec![Event::Paste("unrelated clipboard text".into())],
+    );
+    assert_eq!(app.editor.layout.widgets.len(), 1);
+    let clipboard = serde_json::to_string(&app.editor.layout.widgets[0]).unwrap();
+    frame(&mut app, &ctx, vec![Event::Paste(clipboard)]);
+    assert_eq!(app.editor.layout.widgets.len(), 2);
+    assert_ne!(
+        app.editor.layout.widgets[0].id,
+        app.editor.layout.widgets[1].id
+    );
+    app.editor.undo();
+    assert_eq!(app.editor.layout.widgets.len(), 1);
+}
+
+#[test]
+fn widget_context_actions_apply_to_topmost_target_and_undo() {
+    for action in ["ลบ", "ลงล่าง", "ทำสำเนา"] {
+        let t = tempfile::tempdir().unwrap();
+        let ctx = egui::Context::default();
+        let mut app = DisplayApp::new(&ctx, t.path().join("state.json"));
+        app.editor.layout.widgets.truncate(1);
+        app.editor.selected = Some(app.editor.layout.widgets[0].id.clone());
+        app.editor.duplicate();
+        let base = app.editor.layout.widgets[0].clone();
+        let top = &mut app.editor.layout.widgets[1];
+        top.x = base.x;
+        top.y = base.y;
+        top.label = "Top context target".into();
+        let id = top.id.clone();
+        app.editor.selected = Some(base.id.clone());
+        let before = app.editor.layout.clone();
+        frame(&mut app, &ctx, vec![]);
+        let output = frame(&mut app, &ctx, vec![]);
+        let pos = text_pos(&output, "Top context target");
+        let right = |pressed| Event::PointerButton {
+            pos,
+            button: PointerButton::Secondary,
+            pressed,
+            modifiers: Default::default(),
+        };
+        frame(&mut app, &ctx, vec![Event::PointerMoved(pos), right(true)]);
+        frame(&mut app, &ctx, vec![right(false)]);
+        let output = frame(&mut app, &ctx, vec![]);
+        assert_eq!(app.editor.selected.as_ref(), Some(&id));
+        // Popup is painted after the inspector, which contains some of the same labels.
+        let button = output
+            .shapes
+            .iter()
+            .rev()
+            .find_map(|shape| {
+                if let egui::Shape::Text(text) = &shape.shape
+                    && text.galley.text() == action
+                {
+                    Some(text.pos + text.galley.size() / 2.)
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+        // Selection may change via a shortcut while this popup is still open.
+        app.editor.selected = Some(base.id.clone());
+        frame(
+            &mut app,
+            &ctx,
+            vec![Event::PointerMoved(button), pointer(button, true)],
+        );
+        frame(&mut app, &ctx, vec![pointer(button, false)]);
+        match action {
+            "ลบ" => {
+                assert_eq!(app.editor.layout.widgets.len(), 1);
+                assert_eq!(app.editor.layout.widgets[0].id, base.id);
+            }
+            "ลงล่าง" => assert_eq!(app.editor.layout.widgets[0].id, id),
+            _ => {
+                assert_eq!(app.editor.layout.widgets.len(), 3);
+                assert_eq!(app.editor.layout.widgets[2].label, "Top context target");
+            }
+        }
+        app.editor.undo();
+        assert_eq!(app.editor.layout, before);
+    }
 }

@@ -95,12 +95,29 @@ pub fn widget_inspector(
     color_edit(ui, "พื้นหลัง", &mut w.background);
     ui.add(egui::Slider::new(&mut w.background_opacity, 0. ..=100.).text("Opacity %"));
     egui::ComboBox::from_id_salt("font")
-        .selected_text(&w.font)
+        .selected_text(crate::fonts::label(&w.font))
         .show_ui(ui, |ui| {
             for f in ["sans", "mono", "condensed"] {
                 ui.selectable_value(&mut w.font, f.into(), f);
             }
+            ui.separator();
+            let search_id = egui::Id::new("installed-font-search");
+            let mut search = ui
+                .ctx()
+                .data_mut(|data| data.get_temp::<String>(search_id).unwrap_or_default());
+            ui.add(egui::TextEdit::singleline(&mut search).hint_text("ค้นหาฟอนต์ในเครื่อง"));
+            ui.ctx()
+                .data_mut(|data| data.insert_temp(search_id, search.clone()));
+            let search = search.to_lowercase();
+            for face in crate::fonts::installed() {
+                if face.label.to_lowercase().contains(&search) {
+                    ui.selectable_value(&mut w.font, face.key.clone(), &face.label);
+                }
+            }
         });
+    if crate::fonts::unavailable(ui.ctx(), &w.font) {
+        ui.small("ฟอนต์นี้ไม่มีในเครื่องหรือโหลดไม่ได้ · ใช้ฟอนต์สำรอง");
+    }
     ui.add(egui::Slider::new(&mut w.font_size, 16. ..=300.).text("Font size"));
     ui.collapsing("กรอบและระยะห่าง", |ui| {
         ui.add(egui::Slider::new(&mut w.style.radius, 0. ..=100.).text("มุมโค้ง"));
@@ -108,17 +125,32 @@ pub fn widget_inspector(
         color_edit(ui, "สีขอบ", &mut w.style.border_color);
         ui.add(egui::Slider::new(&mut w.style.padding, 0. ..=100.).text("ระยะด้านใน"));
     });
-    ui.collapsing("หัวข้อและหน่วย", |ui| {
-        ui.checkbox(&mut w.style.show_label, "แสดงหัวข้อ");
-        ui.add_enabled_ui(w.style.show_label, |ui| {
-            ui.add(egui::Slider::new(&mut w.style.label_size, 6. ..=100.).text("ขนาดหัวข้อ"));
-            color_edit(ui, "สีหัวข้อ", &mut w.style.label_color);
-            ui.horizontal(|ui| {
-                ui.label("ตำแหน่งหัวข้อ");
-                ui.selectable_value(&mut w.style.label_position, "top".into(), "บน");
-                ui.selectable_value(&mut w.style.label_position, "bottom".into(), "ล่าง");
+    ui.collapsing(
+        "Label / ข้อความบนวิดเจ็ต",
+        |ui| {
+            ui.checkbox(&mut w.style.show_label, "แสดง Label");
+            ui.small("ปรับ Label ได้โดยไม่ขยับหรือย่อค่าตัวเลข");
+            ui.add_enabled_ui(w.style.show_label, |ui| {
+                ui.label("ข้อความ Label");
+                let mut text = w
+                    .style
+                    .label_text
+                    .clone()
+                    .unwrap_or_else(|| w.label.clone());
+                if ui.text_edit_singleline(&mut text).changed() {
+                    w.style.label_text = Some(crate::model::truncate_utf16(&text, 120));
+                }
+                ui.add(egui::Slider::new(&mut w.style.label_size, 6. ..=100.).text("ขนาด Label"));
+                color_edit(ui, "สี Label", &mut w.style.label_color);
+                ui.horizontal(|ui| {
+                    ui.label("ตำแหน่ง Label");
+                    ui.selectable_value(&mut w.style.label_position, "top".into(), "บน");
+                    ui.selectable_value(&mut w.style.label_position, "bottom".into(), "ล่าง");
+                });
             });
-        });
+        },
+    );
+    ui.collapsing("หน่วย", |ui| {
         if [
             "speed",
             "fuel",

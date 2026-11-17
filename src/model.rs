@@ -80,10 +80,15 @@ pub struct WidgetStyle {
     pub horizontal: String,
     pub vertical: String,
     pub label_size: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub label_text: Option<String>,
     pub label_color: String,
     pub unit_size: f64,
     pub unit_color: String,
     pub label_position: String,
+    /// Frozen legacy content spacing, independent of the overlay label controls.
+    pub content_inset_top: f64,
+    pub content_inset_bottom: f64,
     pub rpm_shape: String,
 }
 impl Default for WidgetStyle {
@@ -98,22 +103,34 @@ impl Default for WidgetStyle {
             horizontal: "center".into(),
             vertical: "center".into(),
             label_size: 14.,
+            label_text: None,
             label_color: "#97aab5".into(),
             unit_size: 16.,
             unit_color: "#a0a0a0".into(),
             label_position: "top".into(),
+            content_inset_top: 22.,
+            content_inset_bottom: 0.,
             rpm_shape: "rounded".into(),
         }
     }
 }
 impl WidgetStyle {
     pub fn validate(&self) -> Result<(), String> {
+        if self
+            .label_text
+            .as_ref()
+            .is_some_and(|text| text.encode_utf16().count() > 120)
+        {
+            return Err("ข้อความ Label ยาวเกินไป".into());
+        }
         for (n, min, max) in [
             (self.radius, 0., 100.),
             (self.border_width, 0., 20.),
             (self.padding, 0., 100.),
             (self.label_size, 6., 100.),
             (self.unit_size, 6., 100.),
+            (self.content_inset_top, 0., 108.),
+            (self.content_inset_bottom, 0., 108.),
         ] {
             if !n.is_finite() || !(min..=max).contains(&n) {
                 return Err("ขนาดตกแต่งวิดเจ็ตไม่ถูกต้อง".into());
@@ -246,6 +263,26 @@ impl Layout {
             .ok_or("ไม่มี widgets")?;
         for w in ws {
             let w = w.as_object_mut().ok_or("ข้อมูลวิดเจ็ตไม่ถูกต้อง")?;
+            // Preserve the exact old content region when importing pre-overlay layouts.
+            let style = w.entry("style").or_insert_with(|| serde_json::json!({}));
+            if let Some(style) = style.as_object_mut() {
+                let visible = style
+                    .get("showLabel")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(true);
+                let size = style
+                    .get("labelSize")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(14.);
+                let bottom = style.get("labelPosition").and_then(|v| v.as_str()) == Some("bottom");
+                let space = if visible { size + 8. } else { 0. };
+                style
+                    .entry("contentInsetTop")
+                    .or_insert_with(|| serde_json::json!(if bottom { 0. } else { space }));
+                style
+                    .entry("contentInsetBottom")
+                    .or_insert_with(|| serde_json::json!(if bottom { space } else { 0. }));
+            }
             // Required legacy nullable field must be present, even when null.
             if !w.contains_key("threshold") {
                 return Err("ไม่มี threshold".into());
@@ -322,7 +359,7 @@ impl Layout {
                 || w.id.encode_utf16().count() > 80
                 || w.label.encode_utf16().count() > 120
                 || !catalog().any(|c| c.0 == w.kind)
-                || !["sans", "mono", "condensed"].contains(&w.font.as_str())
+                || !crate::fonts::valid_selection(&w.font)
                 || ![&w.color, &w.background, &w.warning_color]
                     .iter()
                     .all(|s| valid_color(s))
@@ -380,6 +417,7 @@ pub fn validate_size(w: u32, h: u32) -> Result<(), String> {
 }
 impl Widget {
     pub fn apply_style_preset(&mut self, preset: &str) {
+        let label_text = self.style.label_text.clone();
         match preset {
             "wheel" => {
                 self.style = WidgetStyle {
@@ -388,6 +426,7 @@ impl Widget {
                     border_color: "#81929c".into(),
                     padding: 3.,
                     label_size: 24.,
+                    content_inset_top: 32.,
                     unit_size: 24.,
                     label_color: "#d4dce0".into(),
                     rpm_shape: "square".into(),
@@ -403,6 +442,7 @@ impl Widget {
                     radius: 0.,
                     padding: 0.,
                     show_label: false,
+                    content_inset_top: 0.,
                     show_unit: false,
                     ..WidgetStyle::default()
                 };
@@ -417,6 +457,7 @@ impl Widget {
                     border_width: 1.,
                     border_color: "#33424e".into(),
                     show_label: false,
+                    content_inset_top: 0.,
                     show_unit: false,
                     ..WidgetStyle::default()
                 };
@@ -427,9 +468,12 @@ impl Widget {
             }
             _ => {}
         }
+        self.style.label_text = label_text;
     }
     pub fn copy_style_from(&mut self, source: &Widget) {
+        let label_text = self.style.label_text.clone();
         self.style = source.style.clone();
+        self.style.label_text = label_text;
         self.color = source.color.clone();
         self.background = source.background.clone();
         self.background_opacity = source.background_opacity;

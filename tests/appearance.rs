@@ -136,3 +136,124 @@ fn label_stays_inside_padding_and_border_on_both_edges() {
         "bottom title must clear border and padding, got {bottom_y}"
     );
 }
+
+fn widget_text_geometry(w: &simdisplay::model::Widget) -> Vec<(String, egui::Pos2, egui::Vec2)> {
+    let ctx = egui::Context::default();
+    simdisplay::widgets::configure_fonts(&ctx);
+    let output = ctx.run(Default::default(), |ctx| {
+        paint_widget(
+            &ctx.layer_painter(egui::LayerId::background()),
+            Rect::from_min_size(pos2(0., 0.), vec2(300., 150.)),
+            w,
+            &simdisplay::telemetry::demo(4.),
+            1.,
+        );
+    });
+    output
+        .shapes
+        .into_iter()
+        .filter_map(|shape| {
+            if let egui::Shape::Text(text) = shape.shape {
+                Some((text.galley.text().into(), text.pos, text.galley.size()))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+#[test]
+fn label_edits_do_not_move_or_resize_existing_values() {
+    for kind in [
+        "speed",
+        "gear",
+        "rpmNumber",
+        "lastLap",
+        "tyres",
+        "fuel",
+        "ac.physics.gas",
+        "text",
+    ] {
+        for original in [
+            serde_json::json!({}),
+            serde_json::json!({"showLabel":false}),
+            serde_json::json!({"labelSize":30,"labelPosition":"bottom"}),
+        ] {
+            let mut layout = styled(original);
+            let w = &mut layout.widgets[1];
+            w.kind = kind.into();
+            w.label = "Widget text".into();
+            w.style.label_text = Some("Overlay heading".into());
+            let before: Vec<_> = widget_text_geometry(w)
+                .into_iter()
+                .filter(|text| text.0 != w.style.label_text.as_deref().unwrap())
+                .collect();
+            for (visible, size, position) in [
+                (false, 14., "top"),
+                (true, 6., "top"),
+                (true, 80., "bottom"),
+            ] {
+                w.style.label_text = Some(format!("Heading {size}"));
+                w.style.show_label = visible;
+                w.style.label_size = size;
+                w.style.label_position = position.into();
+                let rendered = widget_text_geometry(w);
+                assert_eq!(
+                    rendered
+                        .iter()
+                        .any(|text| text.0 == w.style.label_text.as_deref().unwrap()),
+                    visible
+                );
+                let values: Vec<_> = rendered
+                    .into_iter()
+                    .filter(|text| text.0 != w.style.label_text.as_deref().unwrap())
+                    .collect();
+                assert_eq!(values, before, "label affected {kind}");
+            }
+        }
+    }
+}
+
+#[test]
+fn legacy_label_spacing_and_independent_label_survive_save_reload() {
+    for (style, expected) in [
+        (serde_json::json!({}), (22., 0.)),
+        (
+            serde_json::json!({"showLabel":false,"labelSize":40}),
+            (0., 0.),
+        ),
+        (
+            serde_json::json!({"labelSize":30,"labelPosition":"bottom"}),
+            (0., 38.),
+        ),
+    ] {
+        let mut layout = styled(style);
+        let w = &mut layout.widgets[1];
+        assert_eq!(
+            (w.style.content_inset_top, w.style.content_inset_bottom),
+            expected
+        );
+        w.style.label_text = Some("Custom overlay".into());
+        w.style.show_label = !w.style.show_label;
+        w.style.label_size = 60.;
+        let before = widget_text_geometry(w);
+        let restored = Layout::parse(&serde_json::to_string(&layout).unwrap()).unwrap();
+        assert_eq!(restored, layout);
+        assert_eq!(widget_text_geometry(&restored.widgets[1]), before);
+    }
+}
+
+#[test]
+fn style_presets_and_style_copy_keep_each_widgets_custom_label() {
+    let layout = Layout::default();
+    let mut source = layout.widgets[0].clone();
+    source.style.label_text = Some("Source heading".into());
+    let mut target = layout.widgets[1].clone();
+    target.style.label_text = Some("My heading".into());
+    target.copy_style_from(&source);
+    assert_eq!(target.style.label_text.as_deref(), Some("My heading"));
+    for preset in ["wheel", "minimal", "card"] {
+        target.apply_style_preset(preset);
+        assert_eq!(target.style.label_text.as_deref(), Some("My heading"));
+    }
+}

@@ -7,6 +7,7 @@ pub struct Editor {
     pub selected: Option<String>,
     pub history: History,
     edit_start: Option<Layout>,
+    clipboard: Option<Widget>,
 }
 impl Editor {
     pub fn new(layout: Layout) -> Self {
@@ -15,6 +16,7 @@ impl Editor {
             selected: None,
             history: History::default(),
             edit_start: None,
+            clipboard: None,
         }
     }
     pub fn selected_mut(&mut self) -> Option<&mut Widget> {
@@ -50,20 +52,46 @@ impl Editor {
         }
         self.end_edit();
     }
+    pub fn copy(&mut self) -> Option<String> {
+        let widget = self.selected_mut()?.clone();
+        let text = serde_json::to_string(&widget).ok()?;
+        self.clipboard = Some(widget);
+        Some(text)
+    }
+    pub fn paste_text(&mut self, text: &str) {
+        // A different application may have replaced the OS clipboard since Copy.
+        if self
+            .clipboard
+            .as_ref()
+            .and_then(|widget| serde_json::to_string(widget).ok())
+            .as_deref()
+            == Some(text)
+        {
+            self.paste();
+        }
+    }
+    pub fn paste(&mut self) {
+        if let Some(widget) = self.clipboard.clone() {
+            self.insert_copy(widget);
+        }
+    }
     pub fn duplicate(&mut self) {
+        if let Some(widget) = self.selected_mut().cloned() {
+            self.insert_copy(widget);
+        }
+    }
+    fn insert_copy(&mut self, mut widget: Widget) {
         self.end_edit();
         if self.layout.widgets.len() >= 100 {
             return;
         }
-        if let Some(mut w) = self.selected_mut().cloned() {
-            self.history.record(&self.layout);
-            w.id = uuid::Uuid::new_v4().to_string();
-            w.x += 24.;
-            w.y += 24.;
-            w.constrain(self.layout.width, self.layout.height);
-            self.selected = Some(w.id.clone());
-            self.layout.widgets.push(w);
-        }
+        self.history.record(&self.layout);
+        widget.id = uuid::Uuid::new_v4().to_string();
+        widget.x += 24.;
+        widget.y += 24.;
+        widget.constrain(self.layout.width, self.layout.height);
+        self.selected = Some(widget.id.clone());
+        self.layout.widgets.push(widget);
     }
     pub fn delete(&mut self) {
         self.end_edit();

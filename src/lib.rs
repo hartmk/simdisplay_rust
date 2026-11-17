@@ -19,3 +19,5 @@ pub mod monitors;
 pub mod inspector;
 
 pub mod app;
+
+pub mod fonts;

@@ -44,18 +44,12 @@ pub fn configure_fonts(ctx: &egui::Context) {
         FontFamily::Name("condensed".into()),
         vec!["condensed".into(), "thai".into()],
     );
-    ctx.set_fonts(fonts);
+    crate::fonts::configure(ctx, fonts);
 }
-fn font(w: &Widget, size: f32) -> FontId {
-    FontId::new(
-        size.max(1.),
-        match w.font.as_str() {
-            "mono" => FontFamily::Monospace,
-            "condensed" => FontFamily::Name("condensed".into()),
-            _ => FontFamily::Proportional,
-        },
-    )
+fn font(p: &Painter, w: &Widget, size: f32) -> FontId {
+    FontId::new(size.max(1.), crate::fonts::family(p.ctx(), &w.font))
 }
+
 fn fitted(p: &Painter, r: Rect, text: &str, f: FontId, c: Color32) {
     fitted_aligned(p, r, text, f, c, Align2::CENTER_CENTER);
 }
@@ -114,7 +108,7 @@ fn value_with_unit(
         p,
         value_rect,
         text,
-        font(w, w.font_size as f32 * scale),
+        font(p, w, w.font_size as f32 * scale),
         c,
         alignment(w),
     );
@@ -124,7 +118,7 @@ fn value_with_unit(
             p,
             unit_rect,
             unit,
-            font(w, w.style.unit_size as f32 * scale),
+            font(p, w, w.style.unit_size as f32 * scale),
             color(&w.style.unit_color),
             Align2([alignment(w).x(), egui::Align::Max]),
         );
@@ -157,50 +151,40 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
     let margin = ((w.style.padding + w.style.border_width) as f32 * scale)
         .min((r.width().min(r.height()) * 0.5 - 1.).max(0.));
     let inner = r.shrink(margin);
-    let title_h = if w.style.show_label {
-        ((w.style.label_size as f32 + 8.) * scale).min(inner.height() * 0.25)
-    } else {
-        0.
-    };
-    let bottom_label = w.style.label_position == "bottom";
-    let title = Rect::from_min_max(
+    let body = Rect::from_min_max(
         pos2(
             inner.left(),
-            if bottom_label {
-                inner.bottom() - title_h
-            } else {
-                inner.top()
-            },
+            inner.top() + (w.style.content_inset_top as f32 * scale).min(inner.height() * 0.25),
         ),
         pos2(
             inner.right(),
-            if bottom_label {
-                inner.bottom()
-            } else {
-                inner.top() + title_h
-            },
+            inner.bottom()
+                - (w.style.content_inset_bottom as f32 * scale).min(inner.height() * 0.25),
         ),
     );
+    paint_contents(&p, body, w, d, scale);
+    // Paint the label last as an overlay: its text, visibility, size and position
+    // never change the rectangle used to fit and align telemetry values.
     if w.style.show_label {
+        let title_h = ((w.style.label_size as f32 + 8.) * scale).min(inner.height());
+        let top = if w.style.label_position == "bottom" {
+            inner.bottom() - title_h
+        } else {
+            inner.top()
+        };
+        let title = Rect::from_min_size(pos2(inner.left(), top), vec2(inner.width(), title_h));
         fitted_aligned(
             &p,
             title,
-            &w.label,
-            font(w, w.style.label_size as f32 * scale),
+            w.style.label_text.as_deref().unwrap_or(&w.label),
+            font(&p, w, w.style.label_size as f32 * scale),
             color(&w.style.label_color),
             Align2::LEFT_CENTER,
         );
     }
-    let body = Rect::from_min_max(
-        pos2(
-            inner.left(),
-            inner.top() + if bottom_label { 0. } else { title_h },
-        ),
-        pos2(
-            inner.right(),
-            inner.bottom() - if bottom_label { title_h } else { 0. },
-        ),
-    );
+}
+
+fn paint_contents(p: &Painter, body: Rect, w: &Widget, d: &Data, scale: f32) {
     // Keep the legacy `lastLap` widget as the combined three-row display.
     let key = if w.kind == "lastLapTime" {
         "lastLap"
@@ -225,11 +209,11 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
         } else {
             &field.unit
         };
-        value_with_unit(&p, body, w, &field.text(output_value), unit, base, scale);
+        value_with_unit(p, body, w, &field.text(output_value), unit, base, scale);
         return;
     }
     match w.kind.as_str() {
-        "tyres" => paint_tyres(&p, body, w, d),
+        "tyres" => paint_tyres(p, body, w, d),
         "rpm" | "rpmNumber" => {
             let state = w.rpm_state(number(d, "rpm"), number(d, "maxRpm"));
             if w.kind == "rpm" {
@@ -257,10 +241,10 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                 }
             } else {
                 fitted_aligned(
-                    &p,
+                    p,
                     body,
                     &numeric(number(d, "rpm"), 0),
-                    font(w, w.font_size as f32 * scale),
+                    font(p, w, w.font_size as f32 * scale),
                     color(&state.color),
                     alignment(w),
                 );
@@ -283,13 +267,7 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                     row.min,
                     pos2(row.left() + row.width() * 0.34, row.bottom()),
                 );
-                fitted(
-                    &p,
-                    label_rect,
-                    label,
-                    FontId::proportional(20. * scale),
-                    Color32::GRAY,
-                );
+                fitted(p, label_rect, label, font(p, w, 20. * scale), Color32::GRAY);
                 let value_rect = Rect::from_min_max(pos2(label_rect.right(), row.top()), row.max);
                 let n = number(d, key);
                 let c = if w.threshold.is_some_and(|t| n.is_some_and(|v| v >= t)) {
@@ -298,10 +276,10 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                     base
                 };
                 fitted_aligned(
-                    &p,
+                    p,
                     value_rect,
                     &format_time(n),
-                    font(w, w.font_size as f32 * scale * 0.65),
+                    font(p, w, w.font_size as f32 * scale * 0.65),
                     c,
                     alignment(w),
                 );
@@ -326,7 +304,7 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
             }
             let mut text_rect = body;
             text_rect.max.y -= (bar_h + 4. * scale).min(body.height() * 0.25);
-            value_with_unit(&p, text_rect, w, &numeric(value, 0), "%", base, scale);
+            value_with_unit(p, text_rect, w, &numeric(value, 0), "%", base, scale);
         }
         _ => {
             let text = match w.kind.as_str() {
@@ -380,7 +358,7 @@ pub fn paint_widget(p: &Painter, r: Rect, w: &Widget, d: &Data, scale: f32) {
                 "fuel" => d.get("fuelUnit").and_then(|v| v.as_str()).unwrap_or(""),
                 _ => "",
             };
-            value_with_unit(&p, body, w, &text, unit, base, scale);
+            value_with_unit(p, body, w, &text, unit, base, scale);
         }
     }
 }
@@ -396,7 +374,13 @@ fn paint_tyres(p: &Painter, r: Rect, w: &Widget, d: &Data) {
     let at = |x: f32, y: f32| origin + vec2(x, y) * s;
     let text = |x: f32, y: f32, t: String, base: f32, c: Color32, max: f32| {
         let rr = Rect::from_center_size(at(x, y), vec2(max * s, base * 1.4 * s));
-        fitted(p, rr, &t, font(w, base * s * (w.font_size as f32 / 68.)), c);
+        fitted(
+            p,
+            rr,
+            &t,
+            font(p, w, base * s * (w.font_size as f32 / 68.)),
+            c,
+        );
     };
     let array = |k: &str, i: usize| d.get(k).and_then(|v| v.get(i)).and_then(|v| v.as_f64());
     for (i, name) in ["FL", "FR", "RL", "RR"].iter().enumerate() {

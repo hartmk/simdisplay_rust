@@ -101,3 +101,15 @@ fn utf16_label_limit_preserves_valid_prefix() {
     assert_eq!(truncate_utf16(&text, 120), "a".repeat(120));
     assert_eq!(truncate_utf16("a🙂b", 3), "a🙂");
 }
+
+#[test]
+fn system_font_selection_roundtrips_even_on_another_machine() {
+    let mut layout = Layout::default();
+    layout.widgets[0].font = "system:MissingFont-Regular".into();
+    let json = serde_json::to_string(&layout).unwrap();
+    assert_eq!(Layout::parse(&json).unwrap(), layout);
+    for invalid in ["system:", "system:bad\nfont", "unknown"] {
+        layout.widgets[0].font = invalid.into();
+        assert!(layout.validate().is_err());
+    }
+}
